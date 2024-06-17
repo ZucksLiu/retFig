@@ -1,0 +1,4 @@
+﻿Method,OCT_to_IR recall@1,OCT_to_IR recall@5,OCT_to_IR recall@10,OCT_to_IR mean rank,OCT_to_IR median rank,IR_to_OCT recall@1,IR_to_OCT recall@5,IR_to_OCT recall@10,IR_to_OCT mean rank,IR_to_OCT median rank
+retFound 2D,0.1216,0.2906,0.3786,174.23,23,0.1228,0.2899,0.388,151.24,22
+retFound 3D,0.464,0.7111,0.7901,23.52,2,0.4713,0.7138,0.7967,23.75,2
+MAE-joint,0.6047,0.8131,0.8661,13.09,1,0.6101,0.8115,0.8643,14.93,1
