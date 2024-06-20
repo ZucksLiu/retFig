@@ -45,7 +45,35 @@ ABL_COLORS = {
     'GigaPath (Dinov2) enc w. ABMIL': '#f0027f',
 }
 
+COLORS_AIREADI_compute = {
+    "MAE-joint finetune": "#0E3E87",
+    "MAE-joint lock_part": "#80BFC9",
+    "retfound finetune": "#346CAC",
+    "retfound lock_part": "#D9EAEA",
+    "MAE-joint linear_probe": "#F7E474",
+    "retfound linear_probe": "#D8B258",
 
+    # "MAE2D 3D": "#DEEAEA", 
+}
+# Original Blue (#0E3E87) - Deep blue.
+# Modified Blue (#1A5298) - Slightly lighter and shifted towards teal.
+# Original Light Blue (#346CAC) - Light blue.
+# Modified Light Blue (#4981BF) - A bit lighter and less saturated.
+# Original Yellow (#F7E474) - Bright yellow.
+# Modified Yellow (#F8EC8C
+COLORS_AIREADI = {
+    "MAE-joint": "#0E3E87",
+    "MAE-joint 3D": "#0E3E87",
+    "retFound 3D": "#346CAC",
+    "retfound 3D": "#346CAC",
+    "retFound 2D": "#F7E474",
+    "retfound 2D": "#F7E474",
+    # "retFound 2D": "#DEEAEA",
+    # "retfound 2D": "#DEEAEA",
+    # "from_scratch 3D": "#F7E474",
+    # "from_scratch 2D": "#D8B258",
+    "MAE2D 3D": "#DEEAEA", 
+}
 
 COLORS = {
     "MAE-joint": "#0E3E87",
@@ -57,6 +85,7 @@ COLORS = {
     "retfound 2D": "#DEEAEA",
     "from_scratch 3D": "#F7E474",
     "from_scratch 2D": "#D8B258",
+    "MAE2D 3D": "#F7E474",
  
  
     # 'MAE-joint': '#121060',
