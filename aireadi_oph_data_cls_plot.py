@@ -10,14 +10,42 @@ from fig_utils import *
 from scipy.stats import ttest_rel, ttest_ind
 # this_file_dir = 
 
-home_directory = os.getenv('HOME')
+home_directory = os.getenv('HOME') + '/'
 if 'wxdeng' in home_directory:
     home_directory =  home_directory + '/oph/'
 
 this_file_dir = home_directory + 'retfound_baseline/'
 save_file_dir = os.path.dirname(os.path.abspath(__file__))
 
+def calculate_quartiles_and_bounds(data):
+    import numpy as np
+    
+    # 确保数据被排序
+    data_sorted = np.sort(data)
+    
+    # 计算Q1和Q3
+    Q1 = np.percentile(data_sorted, 25)
+    Q3 = np.percentile(data_sorted, 75)
+    
+    # 计算IQR
+    IQR = Q3 - Q1
+    
+    # 计算下界和上界
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+    
+    return Q1, Q3, lower_bound, upper_bound
 
+def find_min_max_indices(data):
+    # 确保数据非空且为列表类型
+    if not data or not isinstance(data, list):
+        return None, None
+
+    # 获取最小值和最大值的索引
+    min_index = data.index(min(data))
+    max_index = data.index(max(data))
+
+    return min_index, max_index
 # -----------------DATASET SETTINGS-----------------
 # INHOUSE_OPH_DATASET_DICT = {
 #     # "DUKE13": "duke13",
@@ -108,8 +136,13 @@ MISC_SUFFIX_DICT = {
     # ("oimhs", "default", "outputs_ft", "2D"): "correct",
     # ("oimhs", "fewshot", "outputs_ft_st", "3D"): "correct_15",
     # ("oimhs", "default", "outputs_ft_st", "3D"): "correct_15",
-    ("maes", "default", "retfound", "3D"): "normalize",
-    ("maes", "default", "MAE-joint", "3D"): "maybe_better_shifted"
+    # ("maes", "default", "retfound", "3D"): "normalize",
+    ('maes', 'default', 'retfound', '3D'): "reproduce_10folds",
+    ('maes', 'default', 'MAE-joint', '3D'): "reproduce_10folds_new",
+    ('maes', 'default', 'retfound', '2D'): "50",
+    ('spec', 'default', 'retfound', '2D'): "50",
+    # ('triton', 'default', 'retfound', '2D'): "50",
+    # ("maes", "default", "MAE-joint", "3D"): ""
     # ("triton", "default", "retfound", "3D"): "normalize"
 }
 
@@ -283,10 +316,26 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
 
         y_h = df_dict[plot_task][plot_methods[0]][:, plot_col_idx].tolist()
         y_l = df_dict[plot_task][compare_col][:, plot_col_idx].tolist()
-        
+        print(np.std(y_h), np.std(y_l))
+        print(calculate_quartiles_and_bounds(y_h))
+        print(calculate_quartiles_and_bounds(y_l))
+        print(find_min_max_indices(y_h))
+        print(find_min_max_indices(y_l))
+        idx_hh, idx_hl = find_min_max_indices(y_h)
+        idx_lh, idx_ll = find_min_max_indices(y_l)
+        # filter out the outliers
+        outlier_idx = set([idx_hh, idx_hl, idx_lh, idx_ll])
+        y_h = [y_h[i] for i in range(len(y_h)) if i not in outlier_idx]
+        y_l = [y_l[i] for i in range(len(y_l)) if i not in outlier_idx]
+        # Get the 1.5quantile of the data
+
+
         # p_value = wilcoxon(y_h, y_l, alternative='greater').pvalue
-        t_stat, p_value = ttest_rel(y_h * 3 , y_l * 3)
-        # print(compare_col, plot_methods_name[0], p_value)
+        t_stat, p_value = ttest_rel(y_h , y_l)
+        # t_stat, p_value = ttest_ind(y_h, y_l)
+        # wilcoxon test
+        # t_stat, p_value = wilcoxon(y_h*2, y_l*2, alternative='greater')
+        print(compare_col, plot_methods_name[0], p_value)
 
         ax.set_xticks([])
         ax.set_xlabel(AIREADI_DEVICE_PLOT_NAME[plot_task], fontsize=12)
