@@ -55,6 +55,21 @@ COLORS_AIREADI_compute = {
 
     # "MAE2D 3D": "#DEEAEA", 
 }
+
+COLORS_OIMHS = {
+    "MAE-joint": "#0E3E87",
+    "MAE-joint 3D": "#0E3E87",
+    "retFound 3D": "#346CAC",
+    "retfound 3D": "#346CAC",
+    "retFound 2D": "#F7E474",
+    "retfound 2D": "#F7E474",
+    # "retFound 2D": "#DEEAEA",
+    # "retfound 2D": "#DEEAEA",
+    # "from_scratch 3D": "#F7E474",
+    # "from_scratch 2D": "#D8B258",
+    # "MAE2D 3D": "#DEEAEA", 
+}
+
 # Original Blue (#0E3E87) - Deep blue.
 # Modified Blue (#1A5298) - Slightly lighter and shifted towards teal.
 # Original Light Blue (#346CAC) - Light blue.
@@ -127,6 +142,20 @@ COLORS = {
     'Prov-GigaPath w. transformer': '#fdc086',
     'Prov-GigaPath w/o pt': '#C8A4B6',
     'Prov-GigaPath w. ABMIL': '#386cb0',
+}
+MARKERS_OIMHS = {
+    'MAE-joint 3D': 'o',
+    # 'Prov-MSR-Path': 'o',
+    # 'Prov-GigaPath': 'o',
+    'retfound 3D': 'x',
+    'retFound 3D': 'x',
+    # r'HIPT-$Prov$-$Path$': 'P',
+    # 'CtransPath': 's',
+    'retFound 2D': '*',
+    'retfound 2D': '*',
+    # 'MI-Zero': 'x',
+    # 'BiomedCLIP': 'x',
+
 }
 
 MARKERS = {

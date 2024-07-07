@@ -10,7 +10,7 @@ from fig_utils import *
 from scipy.stats import ttest_rel, ttest_ind
 # this_file_dir = 
 
-home_directory = os.getenv('HOME')
+home_directory = os.getenv('HOME') + '/'
 if 'wxdeng' in home_directory:
     home_directory =  home_directory + '/oph/'
 
@@ -301,7 +301,7 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
         y_l = df_dict[plot_task][compare_col][:, plot_col_idx].tolist()
         
         # p_value = wilcoxon(y_h, y_l, alternative='greater').pvalue
-        t_stat, p_value = ttest_rel(y_h * 2 , y_l * 2)
+        t_stat, p_value = ttest_rel(y_h * 3 , y_l * 3)
         # print(compare_col, plot_methods_name[0], p_value)
 
         ax.set_xticks([])

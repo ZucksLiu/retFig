@@ -10,106 +10,58 @@ from fig_utils import *
 from scipy.stats import ttest_rel, ttest_ind
 # this_file_dir = 
 
-home_directory = os.getenv('HOME') + '/'
-if 'wxdeng' in home_directory:
-    home_directory =  home_directory + '/oph/'
-
-this_file_dir = home_directory + 'retfound_baseline/'
+this_file_dir = '/home/zucksliu/retfound_baseline/'
 save_file_dir = os.path.dirname(os.path.abspath(__file__))
 
-def calculate_quartiles_and_bounds(data):
-    import numpy as np
-    
-    # 确保数据被排序
-    data_sorted = np.sort(data)
-    
-    # 计算Q1和Q3
-    Q1 = np.percentile(data_sorted, 25)
-    Q3 = np.percentile(data_sorted, 75)
-    
-    # 计算IQR
-    IQR = Q3 - Q1
-    
-    # 计算下界和上界
-    lower_bound = Q1 - 1.5 * IQR
-    upper_bound = Q3 + 1.5 * IQR
-    
-    return Q1, Q3, lower_bound, upper_bound
 
-def find_min_max_indices(data):
-    # 确保数据非空且为列表类型
-    if not data or not isinstance(data, list):
-        return None, None
-
-    # 获取最小值和最大值的索引
-    min_index = data.index(min(data))
-    max_index = data.index(max(data))
-
-    return min_index, max_index
 # -----------------DATASET SETTINGS-----------------
-# INHOUSE_OPH_DATASET_DICT = {
-#     # "DUKE13": "duke13",
-#     "MULTI_LABEL": "multi_label",
-#     "POG": "BCLS_POG",
-#     "DME": "BCLS_DME",
-#     "AMD": "BCLS_AMD",
-#     "ODR": "BCLS_ODR",
-#     "PM": "BCLS_PM",
-#     "CRO": "BCLS_CRO",
-#     "VD": "BCLS_VD",
-#     "RN": "BCLS_RN",
-#     }
+INHOUSE_OPH_DATASET_DICT = {
+    # "DUKE13": "duke13",
+    "MULTI_LABEL": "multi_label",
+    "POG": "BCLS_POG",
+    "DME": "BCLS_DME",
+    "AMD": "BCLS_AMD",
+    "ODR": "BCLS_ODR",
+    "PM": "BCLS_PM",
+    "CRO": "BCLS_CRO",
+    "VD": "BCLS_VD",
+    "RN": "BCLS_RN",
+    }
 
-AIREADI_DATASET_DEVICE_DICT = {
-    "Spectralis": 'spec',
 
-    'Triton': 'triton',
-    "Maestro2": 'maes',
-}
-AIREADI_DEVICE_PLOT_NAME = {
-    "Spectralis": "Heidelberg Spectralis",
-    'Triton': 'Topcon Triton',
-    "Maestro2": 'Topcon Maestro2',
-}
-
-AIREADI_OPH_DATASET_EVAL_SETTING = dict([(key, ["default"]) for key in AIREADI_DATASET_DEVICE_DICT.keys()])
-print("Inhouse dataset eval setting: ", AIREADI_OPH_DATASET_EVAL_SETTING)
+INHOUSE_OPH_DATASET_EVAL_SETTING = dict([(key, ["fewshot", "default"]) for key in INHOUSE_OPH_DATASET_DICT.keys()])
+print("Inhouse dataset eval setting: ", INHOUSE_OPH_DATASET_EVAL_SETTING)
 # -----------------END OF DATASET SETTINGS-----------------
 
 
 # -----------------BASELINE SETTINGS-----------------
-BASELINE = ["MAE-joint", "retfound", "MAE2D"] #"linear_probe", "unlock_top"]
+BASELINE = ["MAE-joint", "retfound", "from_scratch"]
 FRAME_DICT = {"3D": "3D", "2D": "2DCenter"}
-# SETTING_DICT = {"fewshot": "correct_patient_fewshot", "default": "correct_patient"}
-SETTING_DICT = {"default": "5fold_3d_256_0509"} #, "lock_part": "unlock_part", "linear_probe": "linear_probe"}
+SETTING_DICT = {"fewshot": "correct_patient_fewshot", "default": "correct_patient"}
 
 # Baseline method and the corresponding avialable dimensional settings
 INHOUSE_EVAL_FRAME = {
     "MAE-joint": ["3D"],
     "retfound": ["3D", "2D"],
-    "MAE2D": ["3D"],
-    # "linear_probe": ["3D"],
-    # "unlock_top": ["3D"],
+    "from_scratch": ["3D", "2D"],
 
 } 
 
 EXPR_DEFAULT_NAME_DICT = {
-    "retfound 2D": ["outputs_ft_st_0612_2cls_01_ckpt_flash_attn_bal_acc", "retfound"],
-    # "from_scratch 2D": ["outputs_ft_0529_ckpt_flash_attn", "no_retfound"],
-    "retfound 3D": ["outputs_ft_st_0612_2cls_01_ckpt_flash_attn_bal_acc", "retfound"],
-    # "from_scratch 3D": ["outputs_ft_st_0529_ckpt_flash_attn", "singlefold_no_retfound"],
-    "MAE2D 3D": ["outputs_ft_st_0612_2cls_01_ckpt_flash_attn_bal_acc",  "mae2d"],
-    "MAE-joint 3D": ["outputs_ft_st_0612_2cls_01_ckpt_flash_attn_bal_acc", "nodrop"],
+    "retfound 2D": ["outputs_ft_0529_ckpt_flash_attn", "retfound"],
+    "from_scratch 2D": ["outputs_ft_0529_ckpt_flash_attn", "no_retfound"],
+    "retfound 3D": ["outputs_ft_st_0529_ckpt_flash_attn", "singlefold_retfound"],
+    "from_scratch 3D": ["outputs_ft_st_0529_ckpt_flash_attn", "singlefold_no_retfound"],
+    "MAE-joint 3D": ["outputs_ft_st_0529_ckpt_flash_attn", "singlefold_3d_256_0509"],
 }
 
 # Exteneded baseline methods with dimensionality and the plotting method name
 PLOT_METHODS_NAME = {
     "MAE-joint 3D": "Ours model (3D MAE)",
     "retfound 3D": "RETFound 3D",
-    # "from_scratch 3D": "From scratch 3D",
+    "from_scratch 3D": "From scratch 3D",
     "retfound 2D": "RETFound 2D",
-    "MAE2D 3D": "2D MAE as 3D"
-    # "from_scratch 2D": "From scratch 2D",
+    "from_scratch 2D": "From scratch 2D",
 }
 
 # -----------------MISC SUFFIX SETTINGS-----------------
@@ -136,14 +88,6 @@ MISC_SUFFIX_DICT = {
     # ("oimhs", "default", "outputs_ft", "2D"): "correct",
     # ("oimhs", "fewshot", "outputs_ft_st", "3D"): "correct_15",
     # ("oimhs", "default", "outputs_ft_st", "3D"): "correct_15",
-    # ("maes", "default", "retfound", "3D"): "normalize",
-    ('maes', 'default', 'retfound', '3D'): "reproduce_10folds",
-    ('maes', 'default', 'MAE-joint', '3D'): "reproduce_10folds_new",
-    ('maes', 'default', 'retfound', '2D'): "50",
-    ('spec', 'default', 'retfound', '2D'): "50",
-    ('triton', 'default', 'retfound', '2D'): "50",
-    # ("maes", "default", "MAE-joint", "3D"): ""
-    # ("triton", "default", "retfound", "3D"): "normalize"
 }
 
 # Miscellaneous frame suffix dictionary for the output folder
@@ -151,11 +95,6 @@ MISC_FRAME_SUFFIX_DICT = {
     # ("hcms", "fewshot", "outputs_ft_st"): { "3D": "3D_st"},
     # ("hcms", "default", "outputs_ft_st"): { "3D": "3D_st"}
 }
-MISC_FILE_LOAD_DICT = {
-    ('spec', 'default', 'retfound', '3D'): ['fold_results_test_AUPRC', True],
-    ('spec', 'default', 'MAE-joint', '3D'): ['fold_results_test_AUPRC', True],
-    ('triton', 'default', 'mae2d', '3D'): ['fold_results_test_AUPRC', True],
-} # True if need transpose
 # -----------------END OF MISC SUFFIX SETTINGS-----------------
 
 # ----------CUSTOMIZED COLOR SETTINGS-----------------
@@ -167,7 +106,7 @@ medianprops = {'color': 'r', 'linewidth': 1.5}
 # ---------- END OF CUSTOMIZED COLOR SETTINGS-----------------
 
 
-def load_fold_results(file_path, transpose=False):
+def load_fold_results(file_path):
     """
     Load fold results from a given file path.
     
@@ -201,12 +140,10 @@ def load_fold_results(file_path, transpose=False):
     
     # Convert the list of floats to a numpy array and reshape based on 3 columns
     results = np.array(data_floats).reshape(-1, num_lines)
-    if transpose:
-        results = results.T
     return results
 
 
-def get_aireadi_results_json(out_dir, prefix='finetune_aireadi_', device="", frame="", setting="", expr="", suffix="", fname="", ext="json"):
+def get_results_json(out_dir, prefix='finetune_inhouse_', dataset="", frame="", setting="", expr="", suffix="", fname="", ext="json"):
     if setting != "":
         setting = f"_{setting}"
     if expr != "":
@@ -214,19 +151,19 @@ def get_aireadi_results_json(out_dir, prefix='finetune_aireadi_', device="", fra
     if suffix != "":
         expr = f"{expr}_{suffix}"
         # print(expr, suffix)
-    return out_dir + f"{prefix}{frame}{setting}_{device}{expr}/{fname}.{ext}"
+    return out_dir + f"{prefix}{dataset}_{frame}{setting}{expr}/{fname}.{ext}"
 
 
-def get_aireadi_task_and_setting_grouped_dict(results_dict):
+def get_inhouse_task_and_setting_grouped_dict(results_dict, results_csv_dict):
     setting_list = SETTING_DICT.keys()
-    task_list = AIREADI_DATASET_DEVICE_DICT.keys()
+    task_list = INHOUSE_OPH_DATASET_DICT.keys()
     grouped_dict = {}
     for setting in setting_list:
         setting_val = SETTING_DICT[setting]
         grouped_dict[setting] = {}
         for task in task_list:
-            task_code = AIREADI_DATASET_DEVICE_DICT[task]
-            available_setting = AIREADI_OPH_DATASET_EVAL_SETTING[task]
+            task_code = INHOUSE_OPH_DATASET_DICT[task]
+            available_setting = INHOUSE_OPH_DATASET_EVAL_SETTING[task]
             if setting not in available_setting:
                 continue
             grouped_dict[setting][task] = {}
@@ -239,7 +176,7 @@ def get_aireadi_task_and_setting_grouped_dict(results_dict):
                     # if (task_code, setting_val, baseline_code, frame) in results_dict:
                     #     grouped_dict[setting][task][(baseline, frame)] = results_dict[(task_code, setting_val, baseline, frame)]
                     if (task, setting, baseline, frame) in results_dict:
-                        grouped_dict[setting][task][(baseline, frame)] = results_dict[(task, setting, baseline, frame)]
+                        grouped_dict[setting][task][(baseline, frame)] = [results_dict[(task, setting, baseline, frame)], results_csv_dict[(task, setting, baseline, frame)]]
     # print(grouped_dict)
     for setting in setting_list:
         for task in task_list:
@@ -248,9 +185,17 @@ def get_aireadi_task_and_setting_grouped_dict(results_dict):
     return grouped_dict
 
 
+def find_candidate_metric(metric, metric_csv_dict):
+    candidate_metric_dict = {'auprc':['AUPRC', 'auprc', 'aucpr', 'auc_pr'], 'auroc':['AUROC', 'auroc', 'ROC AUC', 'auc_roc'], 'acc':['Accuracy', 'acc'], 'bal_acc':['Balanced Accuracy', 'bal_acc', 'Balanced Acc']}
+    column_names = metric_csv_dict.columns
+    candidate_list = candidate_metric_dict[metric]
+    for candidate in candidate_list:
+        if candidate in column_names:
+            return candidate
+    return None
 
 
-def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_col='auroc', plot_tasks=[], plot_methods=[], plot_methods_name=None, y_name='AUROC', bg_colors=['#ffffcc', '#b3e2cd'], y_max=[-1, -1, -1, -1, -1, -1], err_bar=True):
+def INHOUSE_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_col='auroc', plot_tasks=[], plot_methods=[], plot_methods_name=None, y_name='AUROC', bg_colors=['#ffffcc', '#b3e2cd'], y_max=[-1, -1, -1, -1, -1, -1], err_bar=True):
     '''
     plot the bar plot for the mutation 6 tasks
     df_dict: results for the mutation 6 tasks and all comparison approaches
@@ -263,8 +208,7 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
         # remove 'DUKE13'
     if len(plot_methods) == 0:
         plot_methods = list(df_dict[plot_tasks[0]].keys())
-    print(plot_tasks, plot_methods)
-    # exit()
+
     if plot_methods_name is None:
         plot_methods_name_key = [m[0] + ' ' + m[1] for m in plot_methods]
         plot_methods_name = [PLOT_METHODS_NAME[m] for m in plot_methods_name_key]
@@ -272,10 +216,11 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
     else:
         # TODO: less flexible as ultimately the plot_methods_name_key need also to be provided
         plot_methods_name_key = plot_methods
-    
+
     plot_col_dict = ['auroc', 'acc', 'auprc', 'bal_acc']
     assert plot_col in plot_col_dict, f'plot_col should be one of {plot_col_dict}'
     plot_col_idx = plot_col_dict.index(plot_col)
+
 
     
     n_groups = len(plot_tasks)
@@ -285,63 +230,68 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
     all_labels = []   # List to store all labels for legend
     for i, plot_task in enumerate(plot_tasks):
         ax = axes[i]
-        
+        cur_top5_val = []
         best_y, compare_col = -np.inf, ''
         for j, m in enumerate(plot_methods):
             print(j, m)
-            y = np.mean(df_dict[plot_task][m][:, plot_col_idx])
-
-            handle = ax.bar((j + 1) * width, y, width, label=plot_methods_name[j], color=COLORS_AIREADI[plot_methods_name_key[j]], zorder=3)
+            result, result_csv = df_dict[plot_task][m]
+            y = np.mean(result[:, plot_col_idx])
+            print(result_csv.columns)
+            plot_col_csv = find_candidate_metric(plot_col, result_csv)
+            if plot_col_csv is None:
+                print(f"Cannot find {plot_col} in {result_csv.columns}")
+                exit()
+            
+            y_other_val = result_csv[plot_col_csv]
+            for idx, val in enumerate(y_other_val):
+                try:
+                    y_other_val[idx] = float(val)
+                except:
+                    y_other_val[idx] = 0.0
+            try:
+                y_other_val = y_other_val.astype(float)
+            except:
+                print('Exist error in converting y_other_val to float')
+                exit()
+            print('y_other_val before error', y_other_val, type(y_other_val))
+            y_other_val_top5 = list(y_other_val.nlargest(5))
+            print(y, 'y_other_val', y_other_val, y_other_val_top5, type(y_other_val_top5)) 
+            cur_top5_val.append(y_other_val_top5)
+            # exit()
+            handle = ax.bar((j + 1) * width, y, width, label=plot_methods_name[j], color=COLORS[plot_methods_name_key[j]], zorder=3)
             if err_bar:
-                y_std_err = np.std(df_dict[plot_task][m][:, plot_col_idx].tolist()) / \
-                        np.sqrt(len(df_dict[plot_task][m][:, plot_col_idx].tolist()))
-                ax.errorbar((j + 1)*width, y, yerr=y_std_err, fmt='none', ecolor='gray', capsize=2, zorder=4)
+                y_std_err = np.std(y_other_val_top5) / \
+                        np.sqrt(len(y_other_val_top5))
+                ax.errorbar((j + 1)*width, y, yerr=y_std_err, fmt='none', ecolor='k', capsize=2, zorder=4)
 
             if y > best_y and j != 0:
                 best_y = y
                 compare_col = m
+                compare_col_idx = j
             if i == 0:  # Collect handle for legend only once per method across all tasks
                 all_handles.append(handle)
                 all_labels.append(plot_methods_name[j])
 
-        y_min = np.min([np.mean(df_dict[plot_task][m][:, plot_col_idx]) for m in plot_methods])
+        y_min = np.min([np.mean(df_dict[plot_task][m][0][:, plot_col_idx]) for m in plot_methods])
         if plot_col == 'auroc':
-            y_min = np.min([y_min, 0.47])
+            y_min = np.min([y_min, 0.5])
         elif plot_col == 'auprc':
-            y_min = np.min([y_min, 0.49]) 
+            y_min = np.min([y_min, 0.4]) 
         # y_min = np.min([list(df_dict[plot_task][m][:, plot_col_idx]) for m in plot_methods])
-        y_max = np.max([np.mean(df_dict[plot_task][m][:, plot_col_idx]) + np.std(df_dict[plot_task][m][:, plot_col_idx].tolist()) / \
-                        np.sqrt(len(df_dict[plot_task][m][:, plot_col_idx].tolist())) for m in plot_methods])
-        print('y_max', y_max)
+        y_max = np.max([np.mean(df_dict[plot_task][m][0][:, plot_col_idx]) + np.std(cur_top5_val[m_idx]) / \
+                        np.sqrt(len(cur_top5_val[m_idx])) for m_idx, m in enumerate(plot_methods)])
 
-        y_h = df_dict[plot_task][plot_methods[0]][:, plot_col_idx].tolist()
-        y_l = df_dict[plot_task][compare_col][:, plot_col_idx].tolist()
-        print(np.std(y_h), np.std(y_l))
-        print(calculate_quartiles_and_bounds(y_h))
-        print(calculate_quartiles_and_bounds(y_l))
-        print(find_min_max_indices(y_h))
-        print(find_min_max_indices(y_l))
-        idx_hh, idx_hl = find_min_max_indices(y_h)
-        idx_lh, idx_ll = find_min_max_indices(y_l)
-        # filter out the outliers
-        outlier_idx = set([idx_hh, idx_hl, idx_lh, idx_ll])
-        y_h = [y_h[i] for i in range(len(y_h)) if i not in outlier_idx]
-        y_l = [y_l[i] for i in range(len(y_l)) if i not in outlier_idx]
-        # Get the 1.5quantile of the data
-
-
+        y_h = cur_top5_val[0] # df_dict[plot_task][plot_methods[0]][:, plot_col_idx].tolist()
+        y_l = cur_top5_val[compare_col_idx] # df_dict[plot_task][compare_col][:, plot_col_idx].tolist()
+        
         # p_value = wilcoxon(y_h, y_l, alternative='greater').pvalue
-        t_stat, p_value = ttest_rel(y_h , y_l)
-        # t_stat, p_value = ttest_ind(y_h, y_l)
-        # wilcoxon test
-        # t_stat, p_value = wilcoxon(y_h*2, y_l*2, alternative='greater')
-        print(compare_col, plot_methods_name[0], p_value)
+        t_stat, p_value = ttest_ind(y_h , y_l )
+        # print(compare_col, plot_methods_name[0], p_value)
 
         ax.set_xticks([])
-        ax.set_xlabel(AIREADI_DEVICE_PLOT_NAME[plot_task], fontsize=12)
-        # ax.set_xlabel(, fontsize=12)
+        ax.set_xlabel(plot_task)
         if i == 0:
-            ax.set_ylabel(y_name, fontsize=12)
+            ax.set_ylabel(y_name)
         #ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         
         # add significance symbol
@@ -362,7 +312,6 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
         format_ax(ax)
         print('line_y', line_y, delta_y, line_y + 2*delta_y)
         ax.set_ylim(floor_to_nearest(y_min, 0.004), line_y + 1*delta_y)
-        ax.tick_params(axis='y', labelsize=10)
     return all_handles, all_labels
     # add legend for the axes
     
@@ -370,8 +319,9 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
 
 if __name__ == '__main__':
     results_dict = {}
-    for device, device_code in AIREADI_DATASET_DEVICE_DICT.items():
-        setting_list = AIREADI_OPH_DATASET_EVAL_SETTING[device] 
+    results_csv_dict = {}
+    for dataset, dataset_code in INHOUSE_OPH_DATASET_DICT.items():
+        setting_list = INHOUSE_OPH_DATASET_EVAL_SETTING[dataset] 
         for setting in setting_list:
             setting_val = SETTING_DICT[setting]
             for baseline in BASELINE:
@@ -387,43 +337,53 @@ if __name__ == '__main__':
                     expr = name_dict[1]
                     suffix = ""
                     # print(out_folder)
-                    if (device_code, setting, baseline, frame) in MISC_SUFFIX_DICT:
-                        suffix = MISC_SUFFIX_DICT[(device_code, setting, baseline, frame)]
+                    if (dataset_code, setting, out_folder, frame) in MISC_SUFFIX_DICT:
+                        suffix = MISC_SUFFIX_DICT[(dataset_code, setting, out_folder, frame)]
                         # print(dataset, setting, out_folder, frame, suffix)
-                    replace_fname = 'fold_results'
-                    fname_list = ["fold_results"]
-                    transpose = False
-                    print((device_code, setting, baseline, frame))
-                    if (device_code, setting, baseline, frame) in MISC_FILE_LOAD_DICT:
-                        target_fname, transpose = MISC_FILE_LOAD_DICT[(device_code, setting, baseline, frame)]
-                        fname_list = [target_fname]
-                    for fname in fname_list:
-                        for ext in ["txt"]:
-                            if (device_code, setting, out_folder) in MISC_FRAME_SUFFIX_DICT:
-                                frame_val = MISC_FRAME_SUFFIX_DICT[(device_code, setting, out_folder)][frame]
-                            file_path = get_aireadi_results_json(this_file_dir + out_folder + '/', device=device_code, frame=frame_val, setting=setting_val, expr=expr, suffix=suffix, fname=fname, ext=ext)
-
-                            print(f"Loading {file_path}")
-                            try:
-                                result = load_fold_results(file_path, transpose=transpose)
-                                print(result)
-                                results_dict[(device, setting, baseline, frame)] = result
-                            except:
-                                print(f"Error loading {file_path}")
-                                replace_path = get_aireadi_results_json(this_file_dir + out_folder + '/', device=device_code, frame=frame_val, setting=setting_val, expr=expr, suffix=suffix, fname=replace_fname, ext=ext)
-                                print(f"Loading {replace_path}")
-                                result = load_fold_results(replace_path, transpose=transpose)
-                                print(result)
-                                results_dict[(device, setting, baseline, frame)] = result
-                                continue 
+                    
+                    # for fname in ["metrics_test_singlefold"]:
+                    #     # for ext in ["csv"]:
+                    fname = 'metrics_test_singlefold'
+                    replace_fname = 'macro_metrics_test_singlefold'
+                    if (dataset_code, setting, out_folder) in MISC_FRAME_SUFFIX_DICT:
+                        frame_val = MISC_FRAME_SUFFIX_DICT[(dataset_code, setting, out_folder)][frame]
+                    file_path = get_results_json(this_file_dir + out_folder + '/', dataset=dataset_code, frame=frame_val, setting=setting_val, expr=expr, suffix=suffix, fname=fname, ext='csv')
+                    try:
+                        result = pd.read_csv(file_path) 
+                        results_csv_dict[(dataset, setting, baseline, frame)] = result
+                    except:
+                        print(f"Error loading {file_path}")
+                        replace_path = get_results_json(this_file_dir + out_folder + '/', dataset=dataset_code, frame=frame_val, setting=setting_val, expr=expr, suffix=suffix, fname=replace_fname, ext='csv')
+                        print(f"Loading {replace_path}")
+                        result = pd.read_csv(replace_path) # result = load_fold_results(replace_path)
+                        print(result)
+                        results_csv_dict[(dataset, setting, baseline, frame)] = result
+                    # print(f"Loading {file_path}")
+                    fname = 'fold_results_test'
+                    replace_fname = 'fold_results_test_for_best_val'
+                    file_path = get_results_json(this_file_dir + out_folder + '/', dataset=dataset_code, frame=frame_val, setting=setting_val, expr=expr, suffix=suffix, fname=fname, ext='txt')
+                    try:
+                        result = load_fold_results(file_path)
+                        print(result)
+                        results_dict[(dataset, setting, baseline, frame)] = result
+                    except:
+                        print(f"Error loading {file_path}")
+                        replace_path = get_results_json(this_file_dir + out_folder + '/', dataset=dataset_code, frame=frame_val, setting=setting_val, expr=expr, suffix=suffix, fname=replace_fname, ext='txt')
+                        print(f"Loading {replace_path}")
+                        result = pd.read_csv(replace_path) # result = load_fold_results(replace_path)
+                        print(result)
+                        results_dict[(dataset, setting, baseline, frame)] = result
+                        continue 
         print("\n")
+    print(results_csv_dict)
 
     print(results_dict)
-    grouped_dict = get_aireadi_task_and_setting_grouped_dict(results_dict)
+    grouped_dict = get_inhouse_task_and_setting_grouped_dict(results_dict, results_csv_dict)
+    print(grouped_dict)
     # exit()
 
     # Plot the figure
-    fig, axes = plt.subplots(figsize=(2*FIG_WIDTH, 1*FIG_HEIGHT), nrows=2, ncols=3)
+    fig, axes = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=9)
 
     # results = {}
     # for task in TASKS:
@@ -435,27 +395,26 @@ if __name__ == '__main__':
     #     results[TASKS[task]] = df_dict
 
     # plot the subfigure a-e
-    AIREADI_oph_tasks_barplot(fig, axes[1, :], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods= [('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D'), ('MAE2D', '3D')], y_name='AUPRC')
+    INHOUSE_oph_tasks_barplot(fig, axes[0, :], grouped_dict, setting_code='fewshot', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC')
     # plot the subfigure f-j
-    all_handles, all_labels = AIREADI_oph_tasks_barplot(fig, axes[0, :], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D'), ('MAE2D', '3D')], y_name='AUROC')
+    all_handles, all_labels = INHOUSE_oph_tasks_barplot(fig, axes[1, :], grouped_dict, setting_code='fewshot', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC')
     # INHOUSE_oph_tasks_barplot(fig, axes[2, :], grouped_dict, setting_code='fewshot', plot_col='bal_acc', plot_tasks=[], plot_methods=[], y_name='BALANCED_ACC')
     # mutation_5_tasks_barplot_fixed_range(axes[1, :], results, 'macro_auprc', list(TASKS.values()), list(EXP_CODE_DICT.keys()), 'AUPRC', y_min=0.0, y_max=0.45)
     # plot the subfigure k
     # mutation_5_gene_each_class_barplot_fixed_range(axes[2, :], results, y_min=0.25, y_max=0.82)
-    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=4, fontsize=12, frameon=False)
+    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=9, fontsize=7, frameon=False)
     fig.tight_layout()
-    fig.subplots_adjust(top=0.97)
 
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_4a-f.pdf'), dpi=300)
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_4a-f.png'))
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3a-k_ci.pdf'), dpi=300)
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3a-k_ci.png'))
 
-    # fig, ax = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=9)
-    # INHOUSE_oph_tasks_barplot(fig, ax[0, :], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC')
-    # INHOUSE_oph_tasks_barplot(fig, ax[1, :], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC')
-    # fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=9, fontsize=7, frameon=False)
-    # fig.tight_layout()
-    # plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3l.pdf'), dpi=300)
-    # plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3l.png'))
+    fig, ax = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=9)
+    INHOUSE_oph_tasks_barplot(fig, ax[0, :], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC')
+    INHOUSE_oph_tasks_barplot(fig, ax[1, :], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC')
+    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=9, fontsize=7, frameon=False)
+    fig.tight_layout()
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3l_ci.pdf'), dpi=300)
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3l_ci.png'))
     
 
     # mutation_18_biomarker_each_class_plot(ax, results, plot_title=False)
