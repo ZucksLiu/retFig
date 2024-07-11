@@ -12,7 +12,7 @@ from scipy.stats import ttest_rel, ttest_ind
 
 this_file_dir = '/home/zucksliu/retfound_baseline/'
 save_file_dir = os.path.dirname(os.path.abspath(__file__))
-retclip_exp_res = os.path.join(save_file_dir, 'retClip_exp_res.csv')
+retclip_exp_res = os.path.join(save_file_dir, 'retClip_exp_res_aireadi.csv')
 retclip_exp_res_df = pd.read_csv(retclip_exp_res)
 print(retclip_exp_res_df)
 
@@ -43,7 +43,7 @@ def plot_retclip_recall_and_mean_rank(axes, retclip_exp_res_df, prefix, col_name
         for j in range(len(plot_method)):
             method = plot_method[::-1][j]
             method_label = PLOT_METHODS_NAME[method]
-            handle = ax.bar((j + 1)*width, y[j], width, label=method_label, color=COLORS[method], zorder=3,)
+            handle = ax.bar((j + 1)*width, y[j]+0.05, width, label=method_label, color=COLORS[method], zorder=3, bottom=-0.05)
             if i == 0:
                 all_handles.append(handle)
                 all_labels.append(method_label)
@@ -52,15 +52,14 @@ def plot_retclip_recall_and_mean_rank(axes, retclip_exp_res_df, prefix, col_name
         ax.set_xlabel(capitalize_first_letter(col_name), fontsize=8)
         if i == 0:
             ax.set_ylabel(prefix.replace('_', ' '), fontsize=8)
-        y_max = np.max(y)
-        y_max = max(0.9, y_max)
+        # y_max = np.max(y)
+        y_max = max(1, np.max(y)) 
         y_min = np.min(y)
-        y_min = min(0.1, y_min)
         print('y_max', y_max, 'y_min', y_min)
         if col_name == 'mean rank':
             ax.set_ylim(0, y_max + 5)
         else:
-            ax.set_ylim(floor_to_nearest(y_min, 0.004) - 0.1, y_max + 0.01)
+            ax.set_ylim(-0.01, y_max + 0.01)
         format_ax(ax)
     return all_handles, all_labels
 
@@ -78,10 +77,10 @@ def plot_retclip_exp_res(retclip_exp_res_df):
     all_handles, all_labels = plot_retclip_recall_and_mean_rank(ax[0, :], retclip_exp_res_df, first_row_prefix, col_names)
     plot_retclip_recall_and_mean_rank(ax[1, :], retclip_exp_res_df, second_row_prefix, col_names)
     fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.012), ncol=3, fontsize=8, frameon=False)
-    fig.suptitle('UW-Medicine', fontsize=10, y=0.03)
+    fig.suptitle('AI-READI', fontsize=10, y=0.03)
     fig.tight_layout()
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'retClip_exp_res.png'))
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'retClip_exp_res.pdf'), dpi=300)
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'retClip_exp_res_aireadi.png'))
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'retClip_exp_res_aireadi.pdf'), dpi=300)
     # Draw bar plot for each metric
     
 plot_retclip_exp_res(retclip_exp_res_df)
