@@ -276,7 +276,7 @@ def INHOUSE_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
 
         print(df_dict[plot_task][plot_methods[0]])
         agg_ours.append(np.mean(df_dict[plot_task][plot_methods[0]][0][:, plot_col_idx]))
-        agg_r3d.append(np.mean(df_dict[plot_task][plot_methods[2]][0][:, plot_col_idx]))
+        agg_r3d.append(np.mean(df_dict[plot_task][plot_methods[3]][0][:, plot_col_idx]))
 
         print('agg_ours:', agg_ours, 'agg_r3d:', agg_r3d)
 
@@ -442,3 +442,9 @@ if __name__ == '__main__':
 
     # fig.tight_layout()
     # plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2l.pdf'), dpi=300)
+
+
+    # auprc, Average improvement: 0.284830511403253, Average relative improvement: 0.5384325852767391 avg_ours: 0.8138299055555556 avg_r3d: 0.5289993941523026
+    # auroc, Average improvement: 0.2768955093539056, Average relative improvement: 0.45457699735811785 avg_ours: 0.8860233599999999 avg_r3d: 0.6091278506460943
+    # auprc, Average improvement: 0.29582335075009003, Average relative improvement: 0.5530666317472593 avg_ours: 0.8307016705928889 avg_r3d: 0.5348783198427989
+    # auroc, Average improvement: 0.27405964708014185, Average relative improvement: 0.44252854512447803 avg_ours: 0.8933635317663876 avg_r3d: 0.6193038846862458

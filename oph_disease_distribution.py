@@ -55,7 +55,7 @@ plt.gca().set_facecolor('#f0f0f0')
 # Adjust the ticks and labels
 plt.xticks(range(len(sorted_disease_list)), [x[0] for x in sorted_disease_list], ha='center', fontsize=15)
 plt.ylabel('Number of patients', fontsize=20)
-plt.xlabel('Disease ICD-10 code', fontsize=20)
+plt.xlabel('Disease name abbreviation', fontsize=20)
 # set font size of yticks
 plt.yticks(fontsize=15)
 plt.title('Distribution of retinal Diseases', fontsize=20)

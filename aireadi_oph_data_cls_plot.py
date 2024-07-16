@@ -316,6 +316,8 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
 
         y_h = df_dict[plot_task][plot_methods[0]][:, plot_col_idx].tolist()
         y_l = df_dict[plot_task][compare_col][:, plot_col_idx].tolist()
+        y_h_mean = np.mean(y_h)
+        y_l_mean = np.mean(y_l)
         print(np.std(y_h), np.std(y_l))
         print(calculate_quartiles_and_bounds(y_h))
         print(calculate_quartiles_and_bounds(y_l))
@@ -350,13 +352,13 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
         stars = get_star_from_pvalue(p_value, star=True)
         print(f'{plot_task}: {p_value}', stars, y_h, y_l, len(stars))
         compare_idx = plot_methods.index(compare_col)
-        line_y = np.mean(y_h) + np.std(y_h)/np.sqrt(len(y_h)) + delta_y
+        line_y = y_h_mean + np.std(y_h)/np.sqrt(len(y_h)) + delta_y
         x1 = width
         x2 = (compare_idx + 1)*width
         
         if np.mean(y_h) > np.mean(y_l) and len(stars) > 0:
-            ax.plot([x1, x1], [np.mean(y_h) + np.std(y_h)/np.sqrt(len(y_h)) + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
-            ax.plot([x2, x2], [np.mean(y_l) + np.std(y_l)/np.sqrt(len(y_l)) + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
+            ax.plot([x1, x1], [y_h_mean + np.std(y_h)/np.sqrt(len(y_h)) + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
+            ax.plot([x2, x2], [y_l_mean + np.std(y_l)/np.sqrt(len(y_l)) + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
             ax.plot([x1, x2], [line_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
             ax.text((x1 + x2)/2, line_y, stars, fontsize=7, ha='center', va='bottom')
         format_ax(ax)

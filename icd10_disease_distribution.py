@@ -4,6 +4,8 @@ import pickle as pkl
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from fig_settings import *
+from fig_utils import *
 
 home_directory = os.path.expanduser('~') + '/'
 Oph_cls_task_directory = home_directory + 'Oph_cls_task/'
@@ -74,14 +76,19 @@ inset_disease_num = 7
 inset_axes = plt.axes([0.55, 0.4, 0.4, 0.5])  # [left, bottom, width, height]
 inset_palette = sns.color_palette("Blues", inset_disease_num + 1)[::-1]
 inset_bars = inset_axes.bar(range(inset_disease_num), [x[1] for x in sorted_disease_list[:inset_disease_num]], color=inset_palette, width=0.9)
+stars = "***"
+
+# plot stars on the top of each of the bar
+for i, bar in enumerate(inset_bars):
+    inset_axes.text(i, sorted_disease_list[i][1] + 100, stars, ha='center', va='bottom', fontsize=12, c='black')
 inset_axes.set_xticks(range(inset_disease_num))
-inset_axes.set_xticklabels([x[0] for x in sorted_disease_list[:inset_disease_num]], ha='right', fontsize=10)
+inset_axes.set_xticklabels([x[0] for x in sorted_disease_list[:inset_disease_num]], ha='center', fontsize=10)
 inset_axes.set_yticks(range(0, 4001, 1000))
 inset_axes.tick_params(axis='both', which='major', labelsize=14)
 inset_axes.set_facecolor('#f0f0f0')
 inset_axes.set_ylabel('Number of patients', fontsize=18)
 # inset_axes.set_xlabel('Disease ICD-10 code', fontsize=10)
-inset_axes.set_title(f'Top {inset_disease_num} diseases', fontsize=18, y=-0.15)
+inset_axes.set_title(f'Diseases picked', fontsize=18, y=-0.15)
 sns.despine(ax=inset_axes)
 
 
