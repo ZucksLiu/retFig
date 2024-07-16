@@ -7,6 +7,7 @@ from fig_settings import *
 from fig_utils import *
 
 from scipy.stats import ttest_rel, ttest_ind
+import time
 
 this_file_dir = '/home/zucksliu/retfound_baseline/'
 save_file_dir = os.path.dirname(os.path.abspath(__file__))
@@ -290,6 +291,8 @@ def INHOUSE_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='default', p
     width = 0.8 / n_methods # set the barplot width
     all_handles = []  # List to store all handles for legend
     all_labels = []   # List to store all labels for legend
+    agg_ours = []
+    agg_r3d = []
     for i, plot_task in enumerate(plot_tasks):
         ax = axes[i]
         cur_top5_val = []
@@ -335,6 +338,9 @@ def INHOUSE_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='default', p
             if i == 0:  # Collect handle for legend only once per method across all tasks
                 all_handles.append(handle)
                 all_labels.append(plot_methods_name[j])
+        agg_ours.append(np.mean(np.array(df_dict[plot_task][plot_methods[0]])[:, plot_col_idx]))
+        agg_r3d.append(np.mean(np.array(df_dict[plot_task][plot_methods[1]])[:, plot_col_idx]))
+        print('agg_ours:', agg_ours, 'agg_r3d:', agg_r3d)
         print(np.array(df_dict[plot_task][m][0]))
         y_min = np.min([np.mean(np.array(df_dict[plot_task][m])[:, plot_col_idx]) for m in plot_methods])
         if plot_col == 'auroc':
@@ -375,6 +381,11 @@ def INHOUSE_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='default', p
         format_ax(ax)
         print('line_y', line_y, delta_y, line_y + 2*delta_y)
         ax.set_ylim(floor_to_nearest(y_min, 0.004), line_y + 1*delta_y)
+    avg_ours = np.mean(agg_ours)
+    avg_r3d = np.mean(agg_r3d)
+    avg_improvement = avg_ours - avg_r3d
+    avg_rel_improvement = avg_improvement / avg_r3d
+    print(f'{plot_col}, Average improvement: {avg_improvement}, Average relative improvement: {avg_rel_improvement}', 'avg_ours:', avg_ours, 'avg_r3d:', avg_r3d)
     return all_handles, all_labels
     # add legend for the axes
     
@@ -513,8 +524,9 @@ if __name__ == '__main__':
 
     # plot the subfigure a-e
     INHOUSE_oph_tasks_barplot(fig, axes[0, :], organized_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC')
+    time.sleep(10) # auprc, Average improvement: 0.019488472878051888, Average relative improvement: 0.040658527219800566 avg_ours: 0.49880915197439324 avg_r3d: 0.47932067909634135
     # plot the subfigure f-j
-    all_handles, all_labels = INHOUSE_oph_tasks_barplot(fig, axes[1, :], organized_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC')
+    all_handles, all_labels = INHOUSE_oph_tasks_barplot(fig, axes[1, :], organized_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC') # auroc, Average improvement: 0.022644281589650928, Average relative improvement: 0.03345673301663846 avg_ours: 0.6994671374969996 avg_r3d: 0.6768228559073487
     # INHOUSE_oph_tasks_barplot(fig, axes[2, :], grouped_dict, setting_code='fewshot', plot_col='bal_acc', plot_tasks=[], plot_methods=[], y_name='BALANCED_ACC')
     # mutation_5_tasks_barplot_fixed_range(axes[1, :], results, 'macro_auprc', list(TASKS.values()), list(EXP_CODE_DICT.keys()), 'AUPRC', y_min=0.0, y_max=0.45)
     # plot the subfigure k
