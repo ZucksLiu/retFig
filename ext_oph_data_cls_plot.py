@@ -62,12 +62,19 @@ FRAME_DICT = {"3D": "3D", "2D": "2DCenter"}
 SETTING_DICT = {"fewshot": "fewshot_10folds", "default": ""}
 
 # Exteneded baseline methods with dimensionality and the plotting method name
+# PLOT_METHODS_NAME = {
+#     "MAE-joint 3D": "Ours model (3D MAE)",
+#     "retfound 3D": "RETFound 3D",
+#     "from_scratch 3D": "From scratch 3D",
+#     "retfound 2D": "RETFound 2D",
+#     "from_scratch 2D": "From scratch 2D",
+# }
 PLOT_METHODS_NAME = {
-    "MAE-joint 3D": "Ours model (3D MAE)",
-    "retfound 3D": "RETFound 3D",
-    "from_scratch 3D": "From scratch 3D",
-    "retfound 2D": "RETFound 2D",
-    "from_scratch 2D": "From scratch 2D",
+    "MAE-joint 3D": "OctCube",
+    "retfound 3D": "RETFound (3D)",
+    "from_scratch 3D": "Supervised (3D, w/o pre-training)",
+    "retfound 2D": "RETFound (2D)",
+    "from_scratch 2D": "Supervised (2D, w/o pre-training)",
 }
 
 # -----------------END OF BASELINE SETTINGS-----------------
@@ -250,10 +257,12 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
             y_min = np.min([y_min, 0.5])
         elif plot_col == 'auprc':
             y_min = np.min([y_min, 0.4]) 
+        
         # y_min = np.min([list(df_dict[plot_task][m][:, plot_col_idx]) for m in plot_methods])
         y_max = np.max([np.mean(df_dict[plot_task][m][:, plot_col_idx]) + np.std(df_dict[plot_task][m][:, plot_col_idx].tolist()) / \
                         np.sqrt(len(df_dict[plot_task][m][:, plot_col_idx].tolist())) for m in plot_methods])
-
+        y_max = np.max([y_max, 0.98])
+        print('y_max:', y_max, '\n\n\n' )
         y_h = df_dict[plot_task][plot_methods[0]][:, plot_col_idx].tolist()
         y_l = df_dict[plot_task][compare_col][:, plot_col_idx].tolist()
         
@@ -262,9 +271,10 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
         # print(compare_col, plot_methods_name[0], p_value)
 
         ax.set_xticks([])
-        ax.set_xlabel(plot_task)
+        ax.tick_params(axis='both', which='major', labelsize=12)
+        ax.set_xlabel(plot_task, fontsize=12)
         if i == 0:
-            ax.set_ylabel(y_name)
+            ax.set_ylabel(y_name, fontsize=12)
         #ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         
         # add significance symbol
@@ -281,10 +291,11 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
             ax.plot([x1, x1], [np.mean(y_h) + np.std(y_h)/np.sqrt(len(y_h)) + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
             ax.plot([x2, x2], [np.mean(y_l) + np.std(y_l)/np.sqrt(len(y_l)) + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
             ax.plot([x1, x2], [line_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
-            ax.text((x1 + x2)/2, line_y, stars, fontsize=7, ha='center', va='bottom')
+            ax.text((x1 + x2)/2, line_y, stars, fontsize=18, ha='center', va='bottom')
         format_ax(ax)
         print('line_y', line_y, delta_y, line_y + 2*delta_y)
-        ax.set_ylim(floor_to_nearest(y_min, 0.004), line_y + 1*delta_y)
+        # ax.set_ylim(floor_to_nearest(y_min, 0.004), line_y + 1*delta_y)
+        ax.set_ylim(floor_to_nearest(y_min, 0.004), y_max)
     avg_ours = np.mean(agg_ours)
     avg_r3d = np.mean(agg_r3d)
     avg_improvement = avg_ours - avg_r3d
@@ -337,29 +348,32 @@ if __name__ == '__main__':
 
 
     # Plot the figure
-    fig, axes = plt.subplots(figsize=(1*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=5)
+    fig, axes = plt.subplots(figsize=(1.7*FIG_WIDTH, 1*FIG_HEIGHT), nrows=2, ncols=5)
 
     # plot the subfigure a-e
     ext_oph_tasks_barplot(fig, axes[0, :], grouped_dict, setting_code='fewshot', plot_col='auprc', plot_tasks=[], plot_methods=[], plot_methods_name=None, y_name='AUPRC') # auprc, Average improvement: 0.11126311360000019, Average relative improvement: 0.16845254565233772 avg_ours: 0.7717643436 avg_r3d: 0.6605012299999998
     import time 
-    time.sleep(10)
+    # time.sleep(10)
     # plot the subfigure f-j
     all_handles, all_labels = ext_oph_tasks_barplot(fig, axes[1, :], grouped_dict, setting_code='fewshot', plot_col='auroc', plot_tasks=[], plot_methods=[], plot_methods_name=None, y_name='AUROC') # auroc, Average improvement: 0.11160484419999994, Average relative improvement: 0.15939239997895133 avg_ours: 0.8117940892 avg_r3d: 0.700189245
-
+    # fig.
     # plot the subfigure k
-    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=5, fontsize=7, frameon=False)
-    fig.tight_layout()
+    fig.tight_layout( rect=[0, 0, 1, 0.97])
+    # fig.tight_layout()
+    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.01), ncol=5, fontsize=12, frameon=False, columnspacing=0.8)
 
+
+    
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k.pdf'), dpi=300)
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k.png'))
     import time 
-    time.sleep(10)
-    fig, ax = plt.subplots(figsize=(1*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=3)
+    # time.sleep(10)
+    fig, ax = plt.subplots(figsize=(1.5*FIG_WIDTH, 1*FIG_HEIGHT), nrows=2, ncols=3)
     ext_oph_tasks_barplot(fig, ax[0, :], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC') # auprc, Average improvement: 0.10738472466666671, Average relative improvement: 0.13508076692873475 avg_ours: 0.902351522 avg_r3d: 0.7949667973333333
     import time 
-    time.sleep(10)
+    # time.sleep(10)
     ext_oph_tasks_barplot(fig, ax[1, :], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC') # auroc, Average improvement: 0.11786051133333364, Average relative improvement: 0.14338705544766558 avg_ours: 0.9398350680000002 avg_r3d: 0.8219745566666665
-    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=5, fontsize=7, frameon=False)
+    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=5, fontsize=12, frameon=False, columnspacing=0.8)
     fig.tight_layout()
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2l.pdf'), dpi=300)
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2l.png'))

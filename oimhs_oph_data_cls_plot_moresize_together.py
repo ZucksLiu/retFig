@@ -110,7 +110,7 @@ EXPR_DEFAULT_NAME_DICT = {
 
 # Exteneded baseline methods with dimensionality and the plotting method name
 PLOT_METHODS_NAME = {
-    "MAE-joint 3D": "Ours model\n (3D MAE)",
+    "MAE-joint 3D": "OctCube",
     "retfound 3D": "RETFound 3D",
     # "from_scratch 3D": "From scratch 3D",
     "retfound 2D": "RETFound 2D",
@@ -475,7 +475,7 @@ def OIMHS_oph_tasks_scatterplot(fig, ax, grouped_dict, setting_code='fewshot', p
 
         y_min = np.min([np.mean(df_dict[plot_task][m][:, plot_col_idx]) for m in plot_methods])
         if plot_col == 'auroc':
-            y_min = np.min([y_min, 0.5])
+            y_min = np.min([y_min, 0.39])
         elif plot_col == 'auprc':
             y_min = np.min([y_min, 0.39]) 
         elif plot_col == 'bal_acc':
@@ -603,7 +603,7 @@ def OIMHS_oph_tasks_lineplot(fig, ax, grouped_dict, setting_code='fewshot', plot
         
         y_min = np.min([np.mean(df_dict[plot_task][m][:, plot_col_idx]) for m in plot_methods])
         if plot_col == 'auroc':
-            y_min = np.min([y_min, 0.5])
+            y_min = np.min([y_min, 0.39])
         elif plot_col == 'auprc':
             y_min = np.min([y_min, 0.39]) 
         elif plot_col == 'bal_acc':
@@ -623,7 +623,7 @@ def OIMHS_oph_tasks_lineplot(fig, ax, grouped_dict, setting_code='fewshot', plot
 
         ax.set_xticks(RATIO_SETTING)
         ax.tick_params(axis='x', labelsize=25)
-        ax.set_xlabel('OIMHS training data ratio', fontsize=25)
+        ax.set_xlabel('Ratio of training data', fontsize=25)
         if j == 0:
             print('y_name', y_name)
             ax.set_ylabel(y_name, fontsize=25)
@@ -797,33 +797,38 @@ if __name__ == '__main__':
     # plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_oimhs_a-f_line.png'))
 
 
-    metric = 'auroc'
-    metric = 'auprc'
-    # metric = 'bal_acc'
+    # metric = 'auroc'
+    # metric = 'auprc'
+    # # metric = 'bal_acc'
     metric_name_dict = {'auroc': 'AUROC', 'auprc': 'AUPRC', 'acc': 'ACC', 'bal_acc': 'BalAcc'}
-    fig, axes = plt.subplots(figsize=(1.3*FIG_WIDTH, 1*FIG_HEIGHT), nrows=1, ncols=1)
-    # OIMHS_oph_tasks_lineplot(fig, axes[1], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods= [('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D')], y_name='AUPRC')
-    # plot the subfigure f-j
-    # OIMHS_oph_tasks_lineplot(fig, axes[2], grouped_dict, setting_code='default', plot_col='bal_acc', plot_tasks=[], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D')], y_name='BalAcc')
-    all_handles, all_labels = OIMHS_oph_tasks_scatterplot(fig, axes, grouped_dict, setting_code='default', plot_col=metric, plot_tasks=[], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D')], y_name=metric_name_dict[metric])
-    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=4, fontsize=30, frameon=False)
-    fig.tight_layout()
-    fig.subplots_adjust(top=0.97)    
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', f'figure_oimhs_a-f_scatter_{metric}.pdf'), dpi=300)
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', f'figure_oimhs_a-f_scatter_{metric}.png'))
-
-
-
-    fig, axes = plt.subplots(figsize=(1.3*FIG_WIDTH, 1*FIG_HEIGHT), nrows=1, ncols=1)
-    # OIMHS_oph_tasks_lineplot(fig, axes[1], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods= [('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D')], y_name='AUPRC')
-    # plot the subfigure f-j
-    # OIMHS_oph_tasks_lineplot(fig, axes[2], grouped_dict, setting_code='default', plot_col='bal_acc', plot_tasks=[], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D')], y_name='BalAcc')
-    all_handles, all_labels = OIMHS_oph_tasks_lineplot(fig, axes, grouped_dict, setting_code='default', plot_col=metric, plot_tasks=[], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D')], y_name=metric_name_dict[metric])
-    fig.legend(all_handles, all_labels, loc='upper left', bbox_to_anchor=(0.55, 0.45), ncol=1, fontsize=25, frameon=False)
-    fig.tight_layout()
+    # fig, axes = plt.subplots(figsize=(1.3*FIG_WIDTH, 1*FIG_HEIGHT), nrows=1, ncols=1)
+    # # OIMHS_oph_tasks_lineplot(fig, axes[1], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods= [('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D')], y_name='AUPRC')
+    # # plot the subfigure f-j
+    # # OIMHS_oph_tasks_lineplot(fig, axes[2], grouped_dict, setting_code='default', plot_col='bal_acc', plot_tasks=[], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D')], y_name='BalAcc')
+    # all_handles, all_labels = OIMHS_oph_tasks_scatterplot(fig, axes, grouped_dict, setting_code='default', plot_col=metric, plot_tasks=[], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D')], y_name=metric_name_dict[metric])
+    # fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=4, fontsize=30, frameon=False)
+    # fig.tight_layout()
     # fig.subplots_adjust(top=0.97)    
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', f'figure_oimhs_a-f_line_{metric}.pdf'), dpi=300)
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', f'figure_oimhs_a-f_line_{metric}.png'))
+    # plt.savefig(os.path.join(save_file_dir, 'save_figs', f'figure_oimhs_a-f_scatter_{metric}.pdf'), dpi=300)
+    # plt.savefig(os.path.join(save_file_dir, 'save_figs', f'figure_oimhs_a-f_scatter_{metric}.png'))
+
+
+
+    fig, axes = plt.subplots(figsize=(2.5*FIG_WIDTH, 1*FIG_HEIGHT), nrows=1, ncols=2)
+    # OIMHS_oph_tasks_lineplot(fig, axes[1], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods= [('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D')], y_name='AUPRC')
+    # plot the subfigure f-j
+    # OIMHS_oph_tasks_lineplot(fig, axes[2], grouped_dict, setting_code='default', plot_col='bal_acc', plot_tasks=[], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D')], y_name='BalAcc')
+    metric = 'auroc'
+    all_handles, all_labels = OIMHS_oph_tasks_lineplot(fig, axes[0], grouped_dict, setting_code='default', plot_col=metric, plot_tasks=[], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D')], y_name=metric_name_dict[metric])
+    metric = 'auprc'
+    OIMHS_oph_tasks_lineplot(fig, axes[1], grouped_dict, setting_code='default', plot_col=metric, plot_tasks=[], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D')], y_name=metric_name_dict[metric])
+    fig.tight_layout()
+    # fig.tight_layout(rect=[0,0,1,0.95])
+    # fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.02), ncol=3, fontsize=25, frameon=False)
+    
+    # fig.subplots_adjust(top=0.97)    
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', f'figure_oimhs_a-f_line_{metric}_together.pdf'), dpi=300)
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', f'figure_oimhs_a-f_line_{metric}_together.png'))
     # fig, ax = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=9)
     # INHOUSE_oph_tasks_barplot(fig, ax[0, :], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC')
     # INHOUSE_oph_tasks_barplot(fig, ax[1, :], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC')

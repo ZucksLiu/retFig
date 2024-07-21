@@ -61,15 +61,15 @@ def find_min_max_indices(data):
 #     }
 
 AIREADI_DATASET_DEVICE_DICT = {
-    "Spectralis": 'spec',
+    # "Spectralis": 'spec',
 
-    'Triton': 'triton',
+    # # 'Triton': 'triton',
     "Maestro2": 'maes',
 }
 AIREADI_DEVICE_PLOT_NAME = {
     "Spectralis": "Heidelberg Spectralis",
     'Triton': 'Topcon Triton',
-    "Maestro2": 'Topcon Maestro2',
+    "Maestro2": 'Maestro2 (AI-READI)',
 }
 
 AIREADI_OPH_DATASET_EVAL_SETTING = dict([(key, ["default"]) for key in AIREADI_DATASET_DEVICE_DICT.keys()])
@@ -78,7 +78,7 @@ print("Inhouse dataset eval setting: ", AIREADI_OPH_DATASET_EVAL_SETTING)
 
 
 # -----------------BASELINE SETTINGS-----------------
-BASELINE = ["MAE-joint", "retfound", "MAE2D"] #"linear_probe", "unlock_top"]
+BASELINE = ["MAE-joint", "retfound"]# , "MAE2D"] #"linear_probe", "unlock_top"]
 FRAME_DICT = {"3D": "3D", "2D": "2DCenter"}
 # SETTING_DICT = {"fewshot": "correct_patient_fewshot", "default": "correct_patient"}
 SETTING_DICT = {"default": "5fold_3d_256_0509"} #, "lock_part": "unlock_part", "linear_probe": "linear_probe"}
@@ -104,7 +104,7 @@ EXPR_DEFAULT_NAME_DICT = {
 
 # Exteneded baseline methods with dimensionality and the plotting method name
 PLOT_METHODS_NAME = {
-    "MAE-joint 3D": "Ours model (3D MAE)",
+    "MAE-joint 3D": "OctCube",
     "retfound 3D": "RETFound 3D",
     # "from_scratch 3D": "From scratch 3D",
     "retfound 2D": "RETFound 2D",
@@ -280,11 +280,11 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
     
     n_groups = len(plot_tasks)
     n_methods = len(plot_methods)
-    width = 0.8 / n_methods # set the barplot width
+    width = 0.7 / n_methods # set the barplot width
     all_handles = []  # List to store all handles for legend
     all_labels = []   # List to store all labels for legend
     for i, plot_task in enumerate(plot_tasks):
-        ax = axes[i]
+        ax = axes
         
         best_y, compare_col = -np.inf, ''
         for j, m in enumerate(plot_methods):
@@ -306,9 +306,9 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
 
         y_min = np.min([np.mean(df_dict[plot_task][m][:, plot_col_idx]) for m in plot_methods])
         if plot_col == 'auroc':
-            y_min = np.min([y_min, 0.47])
+            y_min = np.min([y_min, 0.5])
         elif plot_col == 'auprc':
-            y_min = np.min([y_min, 0.49]) 
+            y_min = np.min([y_min, 0.5]) 
         # y_min = np.min([list(df_dict[plot_task][m][:, plot_col_idx]) for m in plot_methods])
         y_max = np.max([np.mean(df_dict[plot_task][m][:, plot_col_idx]) + np.std(df_dict[plot_task][m][:, plot_col_idx].tolist()) / \
                         np.sqrt(len(df_dict[plot_task][m][:, plot_col_idx].tolist())) for m in plot_methods])
@@ -340,10 +340,10 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
         print(compare_col, plot_methods_name[0], p_value)
 
         ax.set_xticks([])
-        ax.set_xlabel(AIREADI_DEVICE_PLOT_NAME[plot_task], fontsize=12)
+        ax.set_xlabel(AIREADI_DEVICE_PLOT_NAME[plot_task], fontsize=18)
         # ax.set_xlabel(, fontsize=12)
         if i == 0:
-            ax.set_ylabel(y_name, fontsize=12)
+            ax.set_ylabel(y_name, fontsize=15)
         #ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         
         # add significance symbol
@@ -360,11 +360,12 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
             ax.plot([x1, x1], [y_h_mean + np.std(y_h)/np.sqrt(len(y_h)) + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
             ax.plot([x2, x2], [y_l_mean + np.std(y_l)/np.sqrt(len(y_l)) + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
             ax.plot([x1, x2], [line_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
-            ax.text((x1 + x2)/2, line_y, stars, fontsize=7, ha='center', va='bottom')
+            ax.text((x1 + x2)/2, line_y, stars, fontsize=30, ha='center', va='bottom')
         format_ax(ax)
         print('line_y', line_y, delta_y, line_y + 2*delta_y)
         ax.set_ylim(floor_to_nearest(y_min, 0.004), line_y + 1*delta_y)
-        ax.tick_params(axis='y', labelsize=10)
+        ax.tick_params(axis='y', labelsize=15, )
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     return all_handles, all_labels
     # add legend for the axes
     
@@ -425,7 +426,7 @@ if __name__ == '__main__':
     # exit()
 
     # Plot the figure
-    fig, axes = plt.subplots(figsize=(1.3*FIG_WIDTH, 1*FIG_HEIGHT), nrows=2, ncols=3)
+    fig, axes = plt.subplots(figsize=(1*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=1, ncols=2)
 
     # results = {}
     # for task in TASKS:
@@ -437,19 +438,24 @@ if __name__ == '__main__':
     #     results[TASKS[task]] = df_dict
 
     # plot the subfigure a-e
-    AIREADI_oph_tasks_barplot(fig, axes[1, :], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods= [('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D'), ('MAE2D', '3D')], y_name='AUPRC')
+    AIREADI_oph_tasks_barplot(fig, axes[1], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods= [('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D')], #, ('MAE2D', '3D')], 
+    y_name='AUPRC')
     # plot the subfigure f-j
-    all_handles, all_labels = AIREADI_oph_tasks_barplot(fig, axes[0, :], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D'), ('MAE2D', '3D')], y_name='AUROC')
+    all_handles, all_labels = AIREADI_oph_tasks_barplot(fig, axes[0], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D'), ], #('MAE2D', '3D')], 
+    y_name='AUROC')
     # INHOUSE_oph_tasks_barplot(fig, axes[2, :], grouped_dict, setting_code='fewshot', plot_col='bal_acc', plot_tasks=[], plot_methods=[], y_name='BALANCED_ACC')
     # mutation_5_tasks_barplot_fixed_range(axes[1, :], results, 'macro_auprc', list(TASKS.values()), list(EXP_CODE_DICT.keys()), 'AUPRC', y_min=0.0, y_max=0.45)
     # plot the subfigure k
     # mutation_5_gene_each_class_barplot_fixed_range(axes[2, :], results, y_min=0.25, y_max=0.82)
-    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=4, fontsize=12, frameon=False)
+    # fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.4, 1.015), ncol=1, fontsize=12, frameon=False)
     fig.tight_layout()
-    fig.subplots_adjust(top=0.97)
+    # fig.tight_layout(rect=[0, 0, 1, 0.7])
+    # fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=4, fontsize=10, frameon=False) #, handlelength=2, handletextpad=2, columnspacing=1)
 
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_4a-f.pdf'), dpi=300)
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_4a-f.png'))
+    fig.subplots_adjust(top=0.94)
+
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_4a-f_maes.pdf'), dpi=300)
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_4a-f_maes.png'))
 
     # fig, ax = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=9)
     # INHOUSE_oph_tasks_barplot(fig, ax[0, :], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC')

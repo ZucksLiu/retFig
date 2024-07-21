@@ -343,12 +343,15 @@ def INHOUSE_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='default', p
         print('agg_ours:', agg_ours, 'agg_r3d:', agg_r3d)
         print(np.array(df_dict[plot_task][m][0]))
         y_min = np.min([np.mean(np.array(df_dict[plot_task][m])[:, plot_col_idx]) for m in plot_methods])
+        y_max = np.max([np.mean(np.array(df_dict[plot_task][m])[:, plot_col_idx]) + np.std(np.array(df_dict[plot_task][m])[:, plot_col_idx]) / np.sqrt(len(df_dict[plot_task][m])) for m_idx, m in enumerate(plot_methods)])
+
         if plot_col == 'auroc':
             y_min = np.min([y_min, 0.5])
+            y_max = np.max([y_max, 0.85])
         elif plot_col == 'auprc':
-            y_min = np.min([y_min, 0.4]) 
+            y_min = np.min([y_min, 0.3]) 
+            y_max = np.max([y_max, 0.65])
         # y_min = np.min([list(df_dict[plot_task][m][:, plot_col_idx]) for m in plot_methods])
-        y_max = np.max([np.mean(np.array(df_dict[plot_task][m])[:, plot_col_idx]) + np.std(np.array(df_dict[plot_task][m])[:, plot_col_idx]) / np.sqrt(len(df_dict[plot_task][m])) for m_idx, m in enumerate(plot_methods)])
 
         y_h = np.array(df_dict[plot_task][plot_methods[0]])[:, plot_col_idx].tolist()
         y_l = np.array(df_dict[plot_task][compare_col])[:, plot_col_idx].tolist()
@@ -358,11 +361,11 @@ def INHOUSE_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='default', p
         # print(compare_col, plot_methods_name[0], p_value)
 
         ax.set_xticks([])
-        ax.set_xlabel(plot_task)
+        ax.set_xlabel(plot_task, fontsize=15)
         if i == 0:
-            ax.set_ylabel(y_name)
+            ax.set_ylabel(y_name, fontsize=15)
         #ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-        
+        ax.tick_params(axis='y', which='major', labelsize=10)
         # add significance symbol
         delta_y = 0.01
 
@@ -377,10 +380,11 @@ def INHOUSE_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='default', p
             ax.plot([x1, x1], [np.mean(y_h) + np.std(y_h)/np.sqrt(len(y_h)) + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
             ax.plot([x2, x2], [np.mean(y_l) + np.std(y_l)/np.sqrt(len(y_l)) + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
             ax.plot([x1, x2], [line_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
-            ax.text((x1 + x2)/2, line_y, stars, fontsize=7, ha='center', va='bottom')
+            ax.text((x1 + x2)/2, line_y, stars, fontsize=15, ha='center', va='bottom')
         format_ax(ax)
         print('line_y', line_y, delta_y, line_y + 2*delta_y)
-        ax.set_ylim(floor_to_nearest(y_min, 0.004), line_y + 1*delta_y)
+        # ax.set_ylim(floor_to_nearest(y_min, 0.004), line_y + 1*delta_y)
+        ax.set_ylim(y_min, y_max)
     avg_ours = np.mean(agg_ours)
     avg_r3d = np.mean(agg_r3d)
     avg_improvement = avg_ours - avg_r3d
@@ -511,7 +515,7 @@ if __name__ == '__main__':
     print('grouped_dict:', grouped_dict['default']['E11'])
     print('organized_dict:', organized_dict)
     # Plot the figure
-    fig, axes = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=7)
+    fig, axes = plt.subplots(figsize=(1.7*FIG_WIDTH, 1*FIG_HEIGHT), nrows=2, ncols=7)
 
     # results = {}
     # for task in TASKS:
@@ -524,15 +528,16 @@ if __name__ == '__main__':
 
     # plot the subfigure a-e
     INHOUSE_oph_tasks_barplot(fig, axes[0, :], organized_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC')
-    time.sleep(10) # auprc, Average improvement: 0.019488472878051888, Average relative improvement: 0.040658527219800566 avg_ours: 0.49880915197439324 avg_r3d: 0.47932067909634135
+    # time.sleep(10) # auprc, Average improvement: 0.019488472878051888, Average relative improvement: 0.040658527219800566 avg_ours: 0.49880915197439324 avg_r3d: 0.47932067909634135
     # plot the subfigure f-j
     all_handles, all_labels = INHOUSE_oph_tasks_barplot(fig, axes[1, :], organized_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC') # auroc, Average improvement: 0.022644281589650928, Average relative improvement: 0.03345673301663846 avg_ours: 0.6994671374969996 avg_r3d: 0.6768228559073487
     # INHOUSE_oph_tasks_barplot(fig, axes[2, :], grouped_dict, setting_code='fewshot', plot_col='bal_acc', plot_tasks=[], plot_methods=[], y_name='BALANCED_ACC')
     # mutation_5_tasks_barplot_fixed_range(axes[1, :], results, 'macro_auprc', list(TASKS.values()), list(EXP_CODE_DICT.keys()), 'AUPRC', y_min=0.0, y_max=0.45)
     # plot the subfigure k
     # mutation_5_gene_each_class_barplot_fixed_range(axes[2, :], results, y_min=0.25, y_max=0.82)
-    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=3, fontsize=7, frameon=False)
-    fig.tight_layout()
+    fig.tight_layout(rect=[0, 0.0, 1, 0.975])
+    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=3, fontsize=15, frameon=False)
+    
 
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'icd10_expr_more_runs_ci.pdf'), dpi=300)
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'icd10_expr_more_runs_ci.png'))    

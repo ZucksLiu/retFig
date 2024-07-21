@@ -5,9 +5,18 @@ from PIL import Image
 from scipy.ndimage import gaussian_filter
 from scipy.stats import pearsonr
 import pickle as pkl
+from scipy.stats import gaussian_kde
+from fig_settings import *
+import matplotlib.font_manager as font_manager
+
+# plt.rc('font', family='Helvetica')
 
 home_directory = os.path.expanduser('~') + '/'
 Ophthal_dir = home_directory + 'Ophthal/'
+# font_path = '/home/zucksliu/.local/share/fonts/Helvetica.ttf'
+
+# Create a font properties object with the path to the Helvetica font
+# helvetica_font = font_manager.FontProperties(fname=font_path)
 
 patient_id = 'f840f8f7cce203f8772bee75a0d91750646bd8c82dcd207b4fde48647284dee4/'
 visit_hash = '66eef770603e053058bf8b52fedf6a3a22db63ad2d5eeb68a3095c931f476f1e/'
@@ -110,30 +119,43 @@ pearson_corr, _ = pearsonr(frame_distances, rmse_values)
 slope, intercept = np.polyfit(frame_distances, rmse_values, 1)
 line_x = np.array(frame_distances)
 line_y = slope * line_x + intercept
-plt.plot(line_x, line_y, color='green', label=f'Fit line: y={slope:.2f}x+{intercept:.2f}', alpha=0.7, linestyle='--')
+
+fig, ax = plt.subplots(figsize=(1*FIG_WIDTH, 1*FIG_HEIGHT))
+ax.plot(line_x, line_y, color='green', label=f'Fit line: y={slope:.2f}x+{intercept:.2f}', alpha=0.7, linestyle='--')
+ax.text(0.65, 0.2, 'r=%.3f' % pearson_corr, horizontalalignment='center', verticalalignment='center', transform=ax.transAxes, fontsize=25)
+# ax.text(0.65, 0.25, 'y=%.2fx+%.2f' % (slope, intercept), horizontalalignment='center', verticalalignment='center', transform=ax.transAxes, fontsize=25)
+xy = np.vstack([frame_distances, rmse_values])
+z = gaussian_kde(xy)(xy)
+idx = z.argsort()
+print(len(frame_distances), len(rmse_values), len(z))
+x, y, z = np.array(frame_distances)[idx], np.array(rmse_values)[idx], z[idx]
 
 # Create scatter plot with color based on RMSE values
-sc = plt.scatter(frame_distances, rmse_values, c=rmse_values, cmap='Blues', alpha=0.7)
-plt.title(f'Frame similarity across OCT volume (Pearson r = {pearson_corr:.3f})', fontsize=10)
+sc = ax.scatter(x, y, c=z, s=70, cmap='coolwarm', alpha=1)
+# plt.title(f'Frame similarity across OCT volume (Pearson r = {pearson_corr:.3f})', fontsize=10)
 
-plt.xlabel('Absolute frame index distance', fontsize=10)
-plt.ylabel('Rooted mean square error (RMSE)', fontsize=10)
-
+ax.set_xlabel('Distance between two slices', fontsize=25)
+ax.set_ylabel(r'RMSE $(\downarrow)$', fontsize=25)
+ax.tick_params(axis='both', which='major', labelsize=20)
 # plt.imshow(mse_pairwise, cmap='Blues', vmin=12)
 # plt.title('Frame similarity across OCT volume', fontsize=10)
 # plt.xlabel('Frame index', fontsize=10)
 # plt.ylabel('Frame index', fontsize=10)
 
-cbar = plt.colorbar(orientation='vertical')
+# cbar = fig.colorbar(sc, orientation='vertical', shrink=0.8, pad=0.01)
 # Add title for colorbar
-cbar.ax.set_xlabel('RMSE', fontsize=10)
-cbar.ax.xaxis.set_label_position('top')
-cbar.ax.xaxis.set_ticks_position('top')
-plt.gca().spines['top'].set_visible(False)
-plt.gca().spines['right'].set_visible(False)
-plt.tight_layout()
-plt.savefig(out_dir + 'mse_pairwise_scatter.png')
-plt.savefig(out_dir + 'mse_pairwise_scatter.pdf', dpi=300)
+# cbar.ax.set_ylabel('density', fontsize=25)
+# cbar.ax.set_xticklabels([])
+# cbar.ax.set_yticklabels([])
+# cbar.ax.set_yticks([])
+# cbar.ax.xaxis.set_label_position('top')
+# cbar.ax.xaxis.set_ticks_position('top')
+fig.gca().spines['top'].set_visible(False)
+fig.gca().spines['right'].set_visible(False)
+# fig.tight_layout(rect=[0, 0, 1.05, 1])
+fig.tight_layout()
+plt.savefig(out_dir + 'mse_pairwise_scatter_density.png')
+plt.savefig(out_dir + 'mse_pairwise_scatter_density.pdf', dpi=300)
 
 if os.path.exists(out_dir + 'ssim_pairwise_scatter.pkl'):
     with open(out_dir + 'ssim_pairwise_scatter.pkl', 'rb') as f:
@@ -168,20 +190,37 @@ pearson_corr_ssim, _ = pearsonr(frame_distances, ssim_values)
 slope_ssim, intercept_ssim = np.polyfit(frame_distances, ssim_values, 1)
 line_y_ssim = slope_ssim * line_x + intercept_ssim
 
+xy = np.vstack([frame_distances, ssim_values])
+z = gaussian_kde(xy)(xy)
+idx = z.argsort()
+print(len(frame_distances), len(ssim_values), len(z))
+x, y, z = np.array(frame_distances)[idx], np.array(ssim_values)[idx], z[idx]
+
+
 # Create scatter plot with color based on SSIM values
 plt.clf()
-sc_ssim = plt.scatter(frame_distances, ssim_values, c=ssim_values, cmap='Blues', alpha=0.99)
-plt.plot(line_x, line_y_ssim, color='orange', label=f'Fit line: y={slope_ssim:.2f}x+{intercept_ssim:.2f}', alpha=0.7, linestyle='--')
-plt.title(f'Frame similarity across OCT volume (Pearson r = {pearson_corr_ssim:.3f})', fontsize=10)
-plt.xlabel('Absolute frame index distance', fontsize=10)
-plt.ylabel('Structural similarity index (SSIM)', fontsize=10)
+fig, ax = plt.subplots(figsize=(1*FIG_WIDTH, 1*FIG_HEIGHT))
+sc_ssim = ax.scatter(x, y, c=z, cmap='coolwarm', marker='o', s=70 )
+ax.plot(line_x, line_y_ssim, color='green', label=f'Fit line: y={slope_ssim:.2f}x+{intercept_ssim:.2f}', alpha=1, linestyle='--')
+ax.text(0.62, 0.7, 'r=%.3f' % pearson_corr_ssim, horizontalalignment='center', verticalalignment='center', transform=ax.transAxes, fontsize=25)
+# ax.text(0.62, 0.9, 'y=%.3fx+%.2f' % (slope_ssim, intercept_ssim), horizontalalignment='center', verticalalignment='center', transform=ax.transAxes, fontsize=25)
+# plt.title(f'Frame similarity across OCT volume (Pearson r = {pearson_corr_ssim:.3f})', fontsize=10)
+ax.set_xlabel('Distance between two slices', fontsize=25)
+ax.set_ylabel(r'SSIM ($\uparrow$)', fontsize=25)
+ax.tick_params(axis='both', which='major', labelsize=20)
 # plt.legend()
-cbar_ssim = plt.colorbar(sc_ssim, orientation='vertical')
-cbar_ssim.ax.set_xlabel('SSIM', fontsize=10)
-cbar_ssim.ax.xaxis.set_label_position('top')
-cbar_ssim.ax.xaxis.set_ticks_position('top')
-plt.gca().spines['top'].set_visible(False)
-plt.gca().spines['right'].set_visible(False)
-plt.tight_layout()
-plt.savefig(out_dir + 'ssim_pairwise_scatter.png')
-plt.savefig(out_dir + 'ssim_pairwise_scatter.pdf', dpi=300)
+# cbar_ssim = fig.colorbar(sc_ssim, orientation='vertical', shrink=0.8, pad=0.01)
+# cbar_ssim.ax.set_ylabel('density', fontsize=25)
+# cbar_ssim.ax.set_xticklabels([])
+# cbar_ssim.ax.set_yticklabels([])
+# cbar_ssim.ax.set_yticks([])
+
+# cbar_ssim.ax.set_xlabel('SSIM', fontsize=10)
+# cbar_ssim.ax.xaxis.set_label_position('top')
+# cbar_ssim.ax.xaxis.set_ticks_position('top')
+fig.gca().spines['top'].set_visible(False)
+fig.gca().spines['right'].set_visible(False)
+# fig.tight_layout(rect=[0, 0, 1.05, 1])
+fig.tight_layout()
+plt.savefig(out_dir + 'ssim_pairwise_scatter_density.png')
+plt.savefig(out_dir + 'ssim_pairwise_scatter_density.pdf', dpi=300)

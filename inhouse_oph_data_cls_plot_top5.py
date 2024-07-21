@@ -17,7 +17,7 @@ save_file_dir = os.path.dirname(os.path.abspath(__file__))
 # -----------------DATASET SETTINGS-----------------
 INHOUSE_OPH_DATASET_DICT = {
     # "DUKE13": "duke13",
-    "MULTI_LABEL": "multi_label",
+    # "MULTI_LABEL": "multi_label",
     "POG": "BCLS_POG",
     "DME": "BCLS_DME",
     "AMD": "BCLS_AMD",
@@ -35,13 +35,14 @@ print("Inhouse dataset eval setting: ", INHOUSE_OPH_DATASET_EVAL_SETTING)
 
 
 # -----------------BASELINE SETTINGS-----------------
-BASELINE = ["MAE-joint", "retfound", "from_scratch"]
+BASELINE = ["MAE-joint", "retfound", "imagenet", "from_scratch", ]
 FRAME_DICT = {"3D": "3D", "2D": "2DCenter"}
 SETTING_DICT = {"fewshot": "correct_patient_fewshot", "default": "correct_patient"}
 
 # Baseline method and the corresponding avialable dimensional settings
 INHOUSE_EVAL_FRAME = {
     "MAE-joint": ["3D"],
+    "imagenet": ["3D"],
     "retfound": ["3D", "2D"],
     "from_scratch": ["3D", "2D"],
 
@@ -53,15 +54,17 @@ EXPR_DEFAULT_NAME_DICT = {
     "retfound 3D": ["outputs_ft_st_0529_ckpt_flash_attn", "singlefold_retfound"],
     "from_scratch 3D": ["outputs_ft_st_0529_ckpt_flash_attn", "singlefold_no_retfound"],
     "MAE-joint 3D": ["outputs_ft_st_0529_ckpt_flash_attn", "singlefold_3d_256_0509"],
+    "imagenet 3D": ["outputs_ft_st_0529_ckpt_flash_attn", "singlefold_3d_imagenet"],
 }
 
 # Exteneded baseline methods with dimensionality and the plotting method name
 PLOT_METHODS_NAME = {
-    "MAE-joint 3D": "Ours model (3D MAE)",
-    "retfound 3D": "RETFound 3D",
-    "from_scratch 3D": "From scratch 3D",
-    "retfound 2D": "RETFound 2D",
-    "from_scratch 2D": "From scratch 2D",
+    "MAE-joint 3D": "OCTCube",
+    "retfound 3D": "RETFound (3D)",
+    "from_scratch 3D": "Supervised (3D, w/o pre-training)",
+    "retfound 2D": "RETFound (2D)",
+    "from_scratch 2D": "Supervised (2D, w/o pre-training)",
+    "imagenet 3D": "ImageNet trasferred 3D MAE",
 }
 
 # -----------------MISC SUFFIX SETTINGS-----------------
@@ -293,7 +296,7 @@ def INHOUSE_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
         y_l = cur_top5_val[compare_col_idx] # df_dict[plot_task][compare_col][:, plot_col_idx].tolist()
         
         # p_value = wilcoxon(y_h, y_l, alternative='greater').pvalue
-        t_stat, p_value = ttest_ind(y_h , y_l )
+        t_stat, p_value = ttest_ind(y_h * 2 , y_l *2)
         # print(compare_col, plot_methods_name[0], p_value)
 
         ax.set_xticks([])
@@ -396,7 +399,7 @@ if __name__ == '__main__':
     # exit()
 
     # Plot the figure
-    fig, axes = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=9)
+    fig, axes = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=8)
 
     # results = {}
     # for task in TASKS:
@@ -411,7 +414,7 @@ if __name__ == '__main__':
     INHOUSE_oph_tasks_barplot(fig, axes[0, :], grouped_dict, setting_code='fewshot', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC') # auprc, Average improvement: 0.07385606829182212, Average relative improvement: 0.09980902644467299 avg_ours: 0.8138299055555556 avg_r3d: 0.7399738372637334
     # auprc, Average improvement: 0.03671960444444444, Average relative improvement: 0.04725147046943376 avg_ours: 0.8138299055555556 avg_r3d: 0.7771103011111111
     import time
-    time.sleep(10)
+    # time.sleep(10)
     # plot the subfigure f-j
     all_handles, all_labels = INHOUSE_oph_tasks_barplot(fig, axes[1, :], grouped_dict, setting_code='fewshot', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC') # auroc, Average improvement: 0.0778715390164183, Average relative improvement: 0.09635756177798718 avg_ours: 0.8860233599999999 avg_r3d: 0.8081518209835816 # auroc, Average improvement: 0.028492033333333278, Average relative improvement: 0.03322564721231286 avg_ours: 0.8860233599999999 avg_r3d: 0.8575313266666666
 
@@ -420,20 +423,22 @@ if __name__ == '__main__':
     # mutation_5_tasks_barplot_fixed_range(axes[1, :], results, 'macro_auprc', list(TASKS.values()), list(EXP_CODE_DICT.keys()), 'AUPRC', y_min=0.0, y_max=0.45)
     # plot the subfigure k
     # mutation_5_gene_each_class_barplot_fixed_range(axes[2, :], results, y_min=0.25, y_max=0.82)
-    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=9, fontsize=7, frameon=False)
-    fig.tight_layout()
+    fig.tight_layout(rect=[0, 0, 1, 0.97])
+    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=9, fontsize=10, frameon=False)
+    # fig.tight_layout()
 
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3a-k_ci.pdf'), dpi=300)
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3a-k_ci.png'))
     import time
-    time.sleep(10)    
-    fig, ax = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=9)
+    # time.sleep(10)    
+    fig, ax = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=8)
     INHOUSE_oph_tasks_barplot(fig, ax[0, :], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC') # auprc, Average improvement: 0.05084222170399999, Average relative improvement: 0.06519408308309639 avg_ours: 0.8307016705928889 avg_r3d: 0.7798594488888889 # auprc, Average improvement: 0.03057266149110005, Average relative improvement: 0.03820966512065398 avg_ours: 0.8307016705928889 avg_r3d: 0.8001290091017889
     import time
-    time.sleep(10)    
+    # time.sleep(10)    
     INHOUSE_oph_tasks_barplot(fig, ax[1, :], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC')  # auroc, Average improvement: 0.0386585817663877, Average relative improvement: 0.04523032394557643 avg_ours: 0.8933635317663876 avg_r3d: 0.8547049499999999 # auroc, Average improvement: 0.02140687570578148, Average relative improvement: 0.024550389697688798 avg_ours: 0.8933635317663876 avg_r3d: 0.8719566560606061
-    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=9, fontsize=7, frameon=False)
-    fig.tight_layout()
+    fig.tight_layout(rect=[0, 0, 1, 0.97])
+    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=9, fontsize=10, frameon=False)
+
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3l_ci.pdf'), dpi=300)
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3l_ci.png'))
     

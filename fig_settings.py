@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 
 import matplotlib.gridspec as gridspec
 import matplotlib.font_manager
+import matplotlib.font_manager as fm
+
 
 # set basic parameters
 mpl.rcParams['pdf.fonttype'] = 42
@@ -25,8 +27,12 @@ plt.rc('ytick', labelsize=SMALLER_SIZE)	 # fontsize of the tick labels
 plt.rc('figure', titlesize=MEDIUM_SIZE)
 plt.rc('legend', fontsize=SMALLER_SIZE)
 # plt.rc('font', family='Helvetica')
+# fm.fontManager.addfont('/home/zucksliu/.local/share/fonts/Helvetica.ttf')
+# plt.rcParams.update({'font.family':'Arial'})
 mpl.rcParams.update({
-    "pdf.use14corefonts": True
+    "pdf.use14corefonts": True,
+    # "font.family": "Helvetica"
+    "font.family": "Arial"
 })
  #, xtick.color='w', axes.labelcolor='w', axes.edge_color='w'
 FIG_HEIGHT = 18 / 2.54
@@ -61,8 +67,11 @@ COLORS_OIMHS = {
     "MAE-joint 3D": "#0E3E87",
     "retFound 3D": "#346CAC",
     "retfound 3D": "#346CAC",
-    "retFound 2D": "#F7E474",
-    "retfound 2D": "#F7E474",
+    "retFound 2D": "#80BFC9",
+    "retfound 2D": "#80BFC9",
+    
+    # "retFound 2D": "#F7E474",
+    # "retfound 2D": "#F7E474",
     # "retFound 2D": "#DEEAEA",
     # "retfound 2D": "#DEEAEA",
     # "from_scratch 3D": "#F7E474",
@@ -81,8 +90,10 @@ COLORS_AIREADI = {
     "MAE-joint 3D": "#0E3E87",
     "retFound 3D": "#346CAC",
     "retfound 3D": "#346CAC",
-    "retFound 2D": "#F7E474",
-    "retfound 2D": "#F7E474",
+    "retFound 2D": "#80BFC9",
+    "retfound 2D": "#80BFC9",
+    # "retFound 2D": "#F7E474",
+    # "retfound 2D": "#F7E474",
     # "retFound 2D": "#DEEAEA",
     # "retfound 2D": "#DEEAEA",
     # "from_scratch 3D": "#F7E474",
@@ -93,14 +104,29 @@ COLORS_AIREADI = {
 COLORS = {
     "MAE-joint": "#0E3E87",
     "MAE-joint 3D": "#0E3E87",
+
     "retFound 3D": "#346CAC",
     "retfound 3D": "#346CAC",
 
-    "retFound 2D": "#DEEAEA",
-    "retfound 2D": "#DEEAEA",
+    "retFound 2D": "#80BFC9",
+    "retfound 2D": "#80BFC9",
+    "imagenet 3D":"#D9EAEA", 
     "from_scratch 3D": "#F7E474",
     "from_scratch 2D": "#D8B258",
+
     "MAE2D 3D": "#F7E474",
+
+    # "MAE-joint": "#0E3E87",
+    # "MAE-joint 3D": "#0E3E87",
+    # "retFound 3D": "#346CAC",
+    # "retfound 3D": "#346CAC",
+
+    # "retFound 2D": "#DEEAEA",
+    # "retfound 2D": "#DEEAEA",
+    # "from_scratch 3D": "#F7E474",
+    # "from_scratch 2D": "#D8B258",
+    # "imagenet 3D":"#D9EAEA", 
+    # "MAE2D 3D": "#F7E474",
  
  
     # 'MAE-joint': '#121060',
