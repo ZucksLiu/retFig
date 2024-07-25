@@ -75,7 +75,7 @@ res_df_dict[('retfound', '3D')]['Maestro2 \n(AI-READI)'] = 0.6382
 res_df_dict[('MAE-joint', '3D')]['Maestro2 \n(AI-READI)'] = 0.6627
 
 plot_col_idx = ['recall@1', 'recall@5', 'recall@10', 'mean rank']
-plot_col = 0
+plot_col = 0 if plot_name == 'auroc' else 1
 for idx, row in retclip_exp_res_df.iterrows():
     task = row['Method']
     task_split = task.split(' ')
@@ -168,6 +168,8 @@ def plot_radar(df, ax, is_fill=True, is_box=False):
             if cat.endswith('AI-READI'):
                 cat = cat.replace(' AI-READI', '\n(AI-READI)')
         cat = cat.replace('recall@1', '')
+        cat = cat.replace('recall@5', '')
+        cat = cat.replace('recall@10', '')
 
         if 'EGFR' in cat or 'FAT1' in cat or 'KRAS' in cat or 'LRP1B' in cat or 'TP53' in cat or 'Exon' in cat or 'L858R' in cat or 'TMB' in cat or 'biomarker' in cat:
             #c = '#4daf4a'

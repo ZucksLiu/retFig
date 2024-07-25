@@ -51,7 +51,7 @@ prefix_mapping = {'OCT_to_IR': 'image_to_text', 'IR_to_OCT': 'text_to_image'}
 col_mapping = {'recall@1':'R@1', 'recall@5':'R@5', 'recall@10':'R@10', 'mean rank':'mean_rank'}
 
 
-def plot_retclip_recall_and_mean_rank(axes, retclip_exp_res_df, prefix, col_names, reverse_plot=True, err_bar=True):
+def plot_retclip_recall_and_mean_rank(axes, retclip_exp_res_df, prefix, col_names, reverse_plot=True, err_bar=True, print_xlabels=False):
     plot_method = retclip_exp_res_df['Method'].tolist()
     print(plot_method)
     full_col_names = [f'{prefix} {col_name}' for col_name in col_names]
@@ -87,7 +87,8 @@ def plot_retclip_recall_and_mean_rank(axes, retclip_exp_res_df, prefix, col_name
                 print('y_std_err', y_std_err)
                 ax.errorbar((j + 1)*width, y[j], yerr=y_std_err, fmt='none', ecolor='k', capsize=4, zorder=4)
         ax.set_xticks([])
-        ax.set_xlabel(capitalize_first_letter(col_name), fontsize=15)
+        if print_xlabels:
+            ax.set_xlabel(capitalize_first_letter(col_name), fontsize=15)
         if i == 0:
             ax.set_ylabel(prefix.replace('_', ' '), fontsize=15)
 
@@ -142,7 +143,7 @@ def plot_retclip_exp_res(fig, ax, retclip_exp_res_df):
     second_row_prefix = 'IR_to_OCT'
     col_names = ['recall@1', 'recall@5', 'recall@10', 'mean rank']
     all_handles, all_labels = plot_retclip_recall_and_mean_rank(ax[0, :4], retclip_exp_res_df, first_row_prefix, col_names)
-    plot_retclip_recall_and_mean_rank(ax[1, :4], retclip_exp_res_df, second_row_prefix, col_names)
+    plot_retclip_recall_and_mean_rank(ax[1, :4], retclip_exp_res_df, second_row_prefix, col_names, print_xlabels=True)
     # fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.012), ncol=3, fontsize=25, frameon=False)
     # fig.tight_layout(rect=[0, 0.02, 1, 0.95])
     # fig.suptitle('UW-Medicine', fontsize=15, y=0.04)
@@ -161,7 +162,7 @@ retclip_exp_res = os.path.join(save_file_dir, 'retClip_exp_res_aireadi.csv')
 retclip_exp_res_df = pd.read_csv(retclip_exp_res)
 print(retclip_exp_res_df)
 
-def plot_retclip_recall_and_mean_rank(axes, retclip_exp_res_df, prefix, col_names, reverse_plot=True, err_bar=True):
+def plot_retclip_recall_and_mean_rank(axes, retclip_exp_res_df, prefix, col_names, reverse_plot=True, err_bar=True, print_xlabels=False):
     plot_method = retclip_exp_res_df['Method'].tolist()
     print(plot_method)
     full_col_names = [f'{prefix} {col_name}' for col_name in col_names]
@@ -197,7 +198,8 @@ def plot_retclip_recall_and_mean_rank(axes, retclip_exp_res_df, prefix, col_name
         line_y = np.mean(y_h) + np.std(y_h) / np.sqrt(len(y_h)) + delta_y
         stars = get_star_from_pvalue(p_value, star=True)
         ax.set_xticks([])
-        ax.set_xlabel(capitalize_first_letter(col_name), fontsize=15)
+        if print_xlabels:
+            ax.set_xlabel(capitalize_first_letter(col_name), fontsize=15)
         # if i == 0:
             # ax.set_ylabel(prefix.replace('_', ' '), fontsize=18)
         # y_max = np.max(y)
@@ -232,7 +234,7 @@ def plot_retclip_exp_res(fig, ax, retclip_exp_res_df):
     second_row_prefix = 'IR_to_OCT'
     col_names = ['recall@1', 'recall@5', 'recall@10', 'mean rank']
     all_handles, all_labels = plot_retclip_recall_and_mean_rank(ax[0, 4:], retclip_exp_res_df, first_row_prefix, col_names)
-    plot_retclip_recall_and_mean_rank(ax[1, 4:], retclip_exp_res_df, second_row_prefix, col_names)
+    plot_retclip_recall_and_mean_rank(ax[1, 4:], retclip_exp_res_df, second_row_prefix, col_names, print_xlabels=True)
     fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.03), ncol=3, fontsize=20, frameon=False)
     fig.tight_layout(rect=[0, 0.0, 1, 0.95])
     # fig.suptitle('AI-READI', fontsize=15, y=0.04)
