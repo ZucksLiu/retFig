@@ -593,7 +593,7 @@ def OIMHS_oph_tasks_lineplot(fig, ax, grouped_dict, setting_code='fewshot', plot
             
         
 
-        
+            print('test:', x, plot_col, plot_task, m, y)
         
         handle, = ax.plot(x_values, y_values, marker=MARKERS_OIMHS[plot_methods_name_key[j]], color=COLORS_OIMHS[plot_methods_name_key[j]], label=plot_methods_name[j], zorder=3)
         ax.fill_between(x_values, y_lower, y_upper, color=COLORS_OIMHS[plot_methods_name_key[j]], alpha=color_alpha_dict[plot_methods_name_key[j]], zorder=2)

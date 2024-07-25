@@ -62,6 +62,23 @@ COLORS_AIREADI_compute = {
     # "MAE2D 3D": "#DEEAEA", 
 }
 
+COLORS_RADAR = {
+    "MAE-joint": "#0E3E87",
+    "MAE-joint 3D": "#0E3E87",
+    "retFound 3D": "#D8B258",
+    "retfound 3D": "#D8B258",
+    "retFound 2D": "#80BFC9",
+    "retfound 2D": "#80BFC9",
+    
+    # "retFound 2D": "#F7E474",
+    # "retfound 2D": "#F7E474",
+    # "retFound 2D": "#DEEAEA",
+    # "retfound 2D": "#DEEAEA",
+    # "from_scratch 3D": "#F7E474",
+    # "from_scratch 2D": "#D8B258",
+    # "MAE2D 3D": "#DEEAEA", 
+}
+
 COLORS_OIMHS = {
     "MAE-joint": "#0E3E87",
     "MAE-joint 3D": "#0E3E87",
@@ -98,7 +115,9 @@ COLORS_AIREADI = {
     # "retfound 2D": "#DEEAEA",
     # "from_scratch 3D": "#F7E474",
     # "from_scratch 2D": "#D8B258",
-    "MAE2D 3D": "#DEEAEA", 
+    "MAE2D 3D": "#DEEAEA",
+    "from_scratch 3D": "#F7E474",
+    "from_scratch 2D": "#D8B258", 
 }
 
 COLORS = {

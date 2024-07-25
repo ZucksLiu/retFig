@@ -233,8 +233,12 @@ def INHOUSE_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
     all_labels = []   # List to store all labels for legend
     agg_ours = []
     agg_r3d = []
+    y_max = 0
+    y_max_line = 0
+    xticks_list = []
+    xticks_label = []
     for i, plot_task in enumerate(plot_tasks):
-        ax = axes[i]
+        ax = axes
         cur_top5_val = []
         best_y, compare_col = -np.inf, ''
         for j, m in enumerate(plot_methods):
@@ -263,11 +267,11 @@ def INHOUSE_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
             print(y, 'y_other_val', y_other_val, y_other_val_top5, type(y_other_val_top5)) 
             cur_top5_val.append(y_other_val_top5)
             # exit()
-            handle = ax.bar((j + 1) * width, y, width, label=plot_methods_name[j], color=COLORS[plot_methods_name_key[j]], zorder=3)
+            handle = ax.bar(i * width * (len(plot_methods) + 1) + (j + 1) * width, y, width, label=plot_methods_name[j], color=COLORS[plot_methods_name_key[j]], zorder=3)
             if err_bar:
                 y_std_err = np.std(y_other_val_top5) / \
                         np.sqrt(len(y_other_val_top5))
-                ax.errorbar((j + 1)*width, y, yerr=y_std_err, fmt='none', ecolor='k', capsize=2, zorder=4)
+                ax.errorbar(i * width * (len(plot_methods) + 1) + (j + 1) * width, y, yerr=y_std_err, fmt='none', ecolor='k', capsize=2, zorder=4)
 
             if y > best_y and j != 0:
                 best_y = y
@@ -287,10 +291,12 @@ def INHOUSE_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
         if plot_col == 'auroc':
             y_min = np.min([y_min, 0.5])
         elif plot_col == 'auprc':
-            y_min = np.min([y_min, 0.4]) 
+            y_min = np.min([y_min, 0.5]) 
         # y_min = np.min([list(df_dict[plot_task][m][:, plot_col_idx]) for m in plot_methods])
-        y_max = np.max([np.mean(df_dict[plot_task][m][0][:, plot_col_idx]) + np.std(cur_top5_val[m_idx]) / \
+        y_max_temp = np.max([np.mean(df_dict[plot_task][m][0][:, plot_col_idx]) + np.std(cur_top5_val[m_idx]) / \
                         np.sqrt(len(cur_top5_val[m_idx])) for m_idx, m in enumerate(plot_methods)])
+        if y_max_temp > y_max:
+            y_max = y_max_temp
 
         y_h = cur_top5_val[0] # df_dict[plot_task][plot_methods[0]][:, plot_col_idx].tolist()
         y_l = cur_top5_val[compare_col_idx] # df_dict[plot_task][compare_col][:, plot_col_idx].tolist()
@@ -299,10 +305,11 @@ def INHOUSE_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
         t_stat, p_value = ttest_ind(y_h * 2 , y_l *2)
         # print(compare_col, plot_methods_name[0], p_value)
 
-        ax.set_xticks([])
-        ax.set_xlabel(plot_task)
+        xticks_list.append(i * width * (len(plot_methods) + 1) + width * (len(plot_methods) + 1) / 2)
+        xticks_label.append(plot_task)
+        # ax.set_xlabel(plot_task)
         if i == 0:
-            ax.set_ylabel(y_name)
+            ax.set_ylabel(y_name, fontsize=15)
         #ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         
         # add significance symbol
@@ -312,17 +319,24 @@ def INHOUSE_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
         print(f'{plot_task}: {p_value}', stars, y_h, y_l, len(stars))
         compare_idx = plot_methods.index(compare_col)
         line_y = agg_ours[i] + np.std(y_h)/np.sqrt(len(y_h)) + delta_y
-        x1 = width
-        x2 = (compare_idx + 1)*width
+        x1 = i * width * (len(plot_methods) + 1) + width
+        x2 = i * width * (len(plot_methods) + 1) + (compare_idx + 1)*width
         
         if np.mean(y_h) > np.mean(y_l) and len(stars) > 0:
             ax.plot([x1, x1], [agg_ours[i] + np.std(y_h)/np.sqrt(len(y_h)) + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
             ax.plot([x2, x2], [np.mean(y_l) + np.std(y_l)/np.sqrt(len(y_l)) + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
             ax.plot([x1, x2], [line_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
-            ax.text((x1 + x2)/2, line_y, stars, fontsize=7, ha='center', va='bottom')
+            ax.text((x1 + x2)/2, line_y, stars, fontsize=15, ha='center', va='bottom')
         format_ax(ax)
         print('line_y', line_y, delta_y, line_y + 2*delta_y)
-        ax.set_ylim(floor_to_nearest(y_min, 0.004), line_y + 1*delta_y)
+        if y_max_line < line_y + 1*delta_y:
+            y_max_line = line_y + 1*delta_y
+    ax.set_xticks(xticks_list)
+    ax.set_xticklabels(xticks_label, fontsize=15)
+    ax.set_ylim(floor_to_nearest(y_min, 0.004), y_max_line)
+    ax.set_xlim(0.05, 7.8)  # Adjust the first number to increase/decrease space
+    ax.tick_params(axis='y', which='major', labelsize=10)
+
     avg_ours = np.mean(agg_ours)
     avg_r3d = np.mean(agg_r3d)
     avg_improvement = avg_ours - avg_r3d
@@ -399,7 +413,7 @@ if __name__ == '__main__':
     # exit()
 
     # Plot the figure
-    fig, axes = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=8)
+    fig, axes = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=1)
 
     # results = {}
     # for task in TASKS:
@@ -411,36 +425,36 @@ if __name__ == '__main__':
     #     results[TASKS[task]] = df_dict
 
     # plot the subfigure a-e
-    INHOUSE_oph_tasks_barplot(fig, axes[0, :], grouped_dict, setting_code='fewshot', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC') # auprc, Average improvement: 0.07385606829182212, Average relative improvement: 0.09980902644467299 avg_ours: 0.8138299055555556 avg_r3d: 0.7399738372637334
+    INHOUSE_oph_tasks_barplot(fig, axes[0], grouped_dict, setting_code='fewshot', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC') # auprc, Average improvement: 0.07385606829182212, Average relative improvement: 0.09980902644467299 avg_ours: 0.8138299055555556 avg_r3d: 0.7399738372637334
     # auprc, Average improvement: 0.03671960444444444, Average relative improvement: 0.04725147046943376 avg_ours: 0.8138299055555556 avg_r3d: 0.7771103011111111
     import time
     # time.sleep(10)
     # plot the subfigure f-j
-    all_handles, all_labels = INHOUSE_oph_tasks_barplot(fig, axes[1, :], grouped_dict, setting_code='fewshot', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC') # auroc, Average improvement: 0.0778715390164183, Average relative improvement: 0.09635756177798718 avg_ours: 0.8860233599999999 avg_r3d: 0.8081518209835816 # auroc, Average improvement: 0.028492033333333278, Average relative improvement: 0.03322564721231286 avg_ours: 0.8860233599999999 avg_r3d: 0.8575313266666666
+    all_handles, all_labels = INHOUSE_oph_tasks_barplot(fig, axes[1], grouped_dict, setting_code='fewshot', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC') # auroc, Average improvement: 0.0778715390164183, Average relative improvement: 0.09635756177798718 avg_ours: 0.8860233599999999 avg_r3d: 0.8081518209835816 # auroc, Average improvement: 0.028492033333333278, Average relative improvement: 0.03322564721231286 avg_ours: 0.8860233599999999 avg_r3d: 0.8575313266666666
 
     
     # INHOUSE_oph_tasks_barplot(fig, axes[2, :], grouped_dict, setting_code='fewshot', plot_col='bal_acc', plot_tasks=[], plot_methods=[], y_name='BALANCED_ACC')
     # mutation_5_tasks_barplot_fixed_range(axes[1, :], results, 'macro_auprc', list(TASKS.values()), list(EXP_CODE_DICT.keys()), 'AUPRC', y_min=0.0, y_max=0.45)
     # plot the subfigure k
     # mutation_5_gene_each_class_barplot_fixed_range(axes[2, :], results, y_min=0.25, y_max=0.82)
-    fig.tight_layout(rect=[0, 0, 1, 0.97])
-    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=9, fontsize=10, frameon=False)
+    fig.tight_layout(rect=[0, 0, 1, 0.96], h_pad=0.5, w_pad=0.5)
+    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=9, fontsize=15, columnspacing=0.8, frameon=False)
     # fig.tight_layout()
 
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3a-k_ci.pdf'), dpi=300)
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3a-k_ci.png'))
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3a-k_ci_allinonebar.pdf'), dpi=300)
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3a-k_ci_allinonebar.png'))
     import time
     # time.sleep(10)    
-    fig, ax = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=8)
-    INHOUSE_oph_tasks_barplot(fig, ax[0, :], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC') # auprc, Average improvement: 0.05084222170399999, Average relative improvement: 0.06519408308309639 avg_ours: 0.8307016705928889 avg_r3d: 0.7798594488888889 # auprc, Average improvement: 0.03057266149110005, Average relative improvement: 0.03820966512065398 avg_ours: 0.8307016705928889 avg_r3d: 0.8001290091017889
+    fig, axes = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=1)
+    INHOUSE_oph_tasks_barplot(fig, axes[0], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC') # auprc, Average improvement: 0.05084222170399999, Average relative improvement: 0.06519408308309639 avg_ours: 0.8307016705928889 avg_r3d: 0.7798594488888889 # auprc, Average improvement: 0.03057266149110005, Average relative improvement: 0.03820966512065398 avg_ours: 0.8307016705928889 avg_r3d: 0.8001290091017889
     import time
     # time.sleep(10)    
-    INHOUSE_oph_tasks_barplot(fig, ax[1, :], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC')  # auroc, Average improvement: 0.0386585817663877, Average relative improvement: 0.04523032394557643 avg_ours: 0.8933635317663876 avg_r3d: 0.8547049499999999 # auroc, Average improvement: 0.02140687570578148, Average relative improvement: 0.024550389697688798 avg_ours: 0.8933635317663876 avg_r3d: 0.8719566560606061
-    fig.tight_layout(rect=[0, 0, 1, 0.97])
-    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=9, fontsize=10, frameon=False)
+    INHOUSE_oph_tasks_barplot(fig, axes[1], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC')  # auroc, Average improvement: 0.0386585817663877, Average relative improvement: 0.04523032394557643 avg_ours: 0.8933635317663876 avg_r3d: 0.8547049499999999 # auroc, Average improvement: 0.02140687570578148, Average relative improvement: 0.024550389697688798 avg_ours: 0.8933635317663876 avg_r3d: 0.8719566560606061
+    fig.tight_layout(rect=[0, 0, 1, 0.96], h_pad=0.5)
+    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=9, fontsize=15, columnspacing=0.8, frameon=False)
 
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3l_ci.pdf'), dpi=300)
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3l_ci.png'))
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3l_ci_allinonebar.pdf'), dpi=300)
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3l_ci_allinonebar.png'))
     
 
     # mutation_18_biomarker_each_class_plot(ax, results, plot_title=False)

@@ -241,16 +241,20 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
     all_labels = []   # List to store all labels for legend
     agg_ours = []
     agg_r3d = []
+    y_max = 0
+    y_max_line = 0
+    xticks_list = []
+    xticks_label = []
     for i, plot_task in enumerate(plot_tasks):
-        ax = axes[i]
+        ax = axes
         best_y, compare_col = -np.inf, ''
         for j, m in enumerate(plot_methods):
             print(j, m)
             y = np.mean(df_dict[plot_task][m][:, plot_col_idx])
             y_std_err = np.std(df_dict[plot_task][m][:, plot_col_idx].tolist()) / \
                         np.sqrt(len(df_dict[plot_task][m][:, plot_col_idx].tolist()))
-            handle = ax.bar((j + 1) * width, y, width, label=plot_methods_name[j], color=COLORS[plot_methods_name_key[j]], zorder=3)
-            ax.errorbar((j + 1) * width, y, yerr=y_std_err, fmt='none', ecolor='k', capsize=2, zorder=4)
+            handle = ax.bar(i * width * (len(plot_methods) + 1) + (j + 1) * width, y, width, label=plot_methods_name[j], color=COLORS[plot_methods_name_key[j]], zorder=3)
+            ax.errorbar(i * width * (len(plot_methods) + 1) + (j + 1) * width, y, yerr=y_std_err, fmt='none', ecolor='k', capsize=2, zorder=4)
             if y > best_y and j != 0:
                 best_y = y
                 compare_col = m
@@ -266,7 +270,7 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
             y_min = np.min([y_min, 0.4]) 
         
         # y_min = np.min([list(df_dict[plot_task][m][:, plot_col_idx]) for m in plot_methods])
-        y_max = np.max([np.mean(df_dict[plot_task][m][:, plot_col_idx]) + np.std(df_dict[plot_task][m][:, plot_col_idx].tolist()) / \
+        y_max_temp = np.max([np.mean(df_dict[plot_task][m][:, plot_col_idx]) + np.std(df_dict[plot_task][m][:, plot_col_idx].tolist()) / \
                         np.sqrt(len(df_dict[plot_task][m][:, plot_col_idx].tolist())) for m in plot_methods])
         y_max = np.max([y_max, 0.98]) if setting_code == 'fewshot' else np.max([y_max, 1])
         print('y_max:', y_max, '\n\n\n' )
@@ -277,11 +281,12 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
         t_stat, p_value = ttest_rel(y_h * 2 , y_l * 2)
         # print(compare_col, plot_methods_name[0], p_value)
 
-        ax.set_xticks([])
-        ax.tick_params(axis='both', which='major', labelsize=12)
-        ax.set_xlabel(plot_task, fontsize=12)
+        xticks_list.append(i * width * (len(plot_methods) + 1) + width * (len(plot_methods) + 1) / 2)
+        xticks_label.append(plot_task)
+        ax.tick_params(axis='both', which='major', labelsize=18)
+        # ax.set_xlabel(plot_task, fontsize=12)
         if i == 0:
-            ax.set_ylabel(y_name, fontsize=12)
+            ax.set_ylabel(y_name, fontsize=20)
         #ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         
         # add significance symbol
@@ -291,8 +296,8 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
         print(f'{plot_task}: {p_value}', stars, y_h, y_l, len(stars))
         compare_idx = plot_methods.index(compare_col)
         line_y = np.mean(y_h) + np.std(y_h)/np.sqrt(len(y_h)) + delta_y
-        x1 = width
-        x2 = (compare_idx + 1)*width
+        x1 = i * width * (len(plot_methods) + 1) + width
+        x2 = i * width * (len(plot_methods) + 1) + (compare_idx + 1)*width
         
         if np.mean(y_h) > np.mean(y_l) and len(stars) > 0:
             ax.plot([x1, x1], [np.mean(y_h) + np.std(y_h)/np.sqrt(len(y_h)) + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
@@ -302,7 +307,13 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
         format_ax(ax)
         print('line_y', line_y, delta_y, line_y + 2*delta_y)
         # ax.set_ylim(floor_to_nearest(y_min, 0.004), line_y + 1*delta_y)
-        ax.set_ylim(floor_to_nearest(y_min, 0.004), y_max)
+        max_width = i * width * (len(plot_methods) + 1) + (j + 1) * width
+    print('max_width:', max_width)
+    # exit()
+    ax.set_ylim(floor_to_nearest(y_min, 0.004), y_max)
+    ax.set_xticks(xticks_list)
+    ax.set_xticklabels(xticks_label, fontsize=20)
+    ax.set_xlim(0.05, max_width + width)
     avg_ours = np.mean(agg_ours)
     avg_r3d = np.mean(agg_r3d)
     avg_improvement = avg_ours - avg_r3d
@@ -355,36 +366,36 @@ if __name__ == '__main__':
 
 
     # Plot the figure
-    fig, axes = plt.subplots(figsize=(1.7*FIG_WIDTH, 1*FIG_HEIGHT), nrows=2, ncols=5)
+    fig, axes = plt.subplots(figsize=(1.7*FIG_WIDTH, 1*FIG_HEIGHT), nrows=2, ncols=1)
 
     # plot the subfigure a-e
-    ext_oph_tasks_barplot(fig, axes[0, :], grouped_dict, setting_code='fewshot', plot_col='auprc', plot_tasks=[], plot_methods=[], plot_methods_name=None, y_name='AUPRC') # auprc, Average improvement: 0.11126311360000019, Average relative improvement: 0.16845254565233772 avg_ours: 0.7717643436 avg_r3d: 0.6605012299999998
+    ext_oph_tasks_barplot(fig, axes[0], grouped_dict, setting_code='fewshot', plot_col='auprc', plot_tasks=[], plot_methods=[], plot_methods_name=None, y_name='AUPRC') # auprc, Average improvement: 0.11126311360000019, Average relative improvement: 0.16845254565233772 avg_ours: 0.7717643436 avg_r3d: 0.6605012299999998
     import time 
     # time.sleep(10)
     # plot the subfigure f-j
-    all_handles, all_labels = ext_oph_tasks_barplot(fig, axes[1, :], grouped_dict, setting_code='fewshot', plot_col='auroc', plot_tasks=[], plot_methods=[], plot_methods_name=None, y_name='AUROC') # auroc, Average improvement: 0.11160484419999994, Average relative improvement: 0.15939239997895133 avg_ours: 0.8117940892 avg_r3d: 0.700189245
+    all_handles, all_labels = ext_oph_tasks_barplot(fig, axes[1], grouped_dict, setting_code='fewshot', plot_col='auroc', plot_tasks=[], plot_methods=[], plot_methods_name=None, y_name='AUROC') # auroc, Average improvement: 0.11160484419999994, Average relative improvement: 0.15939239997895133 avg_ours: 0.8117940892 avg_r3d: 0.700189245
     # fig.
     # plot the subfigure k
     fig.tight_layout( rect=[0, 0, 1, 0.97])
     # fig.tight_layout()
-    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.01), ncol=5, fontsize=12, frameon=False, columnspacing=0.8)
+    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.01), ncol=5, fontsize=13, frameon=False, columnspacing=0.8)
 
 
     
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k.pdf'), dpi=300)
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k.png'))
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k_allinonebar.pdf'), dpi=300)
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k_allinonebar.png'))
     import time 
     # time.sleep(10)
-    fig, ax = plt.subplots(figsize=(1.7*FIG_WIDTH, 1*FIG_HEIGHT), nrows=2, ncols=3)
-    ext_oph_tasks_barplot(fig, ax[0, :], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC') # auprc, Average improvement: 0.10738472466666671, Average relative improvement: 0.13508076692873475 avg_ours: 0.902351522 avg_r3d: 0.7949667973333333
+    fig, ax = plt.subplots(figsize=(1.7*FIG_WIDTH, 1*FIG_HEIGHT), nrows=2, ncols=1)
+    ext_oph_tasks_barplot(fig, ax[0], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC') # auprc, Average improvement: 0.10738472466666671, Average relative improvement: 0.13508076692873475 avg_ours: 0.902351522 avg_r3d: 0.7949667973333333
     import time 
     # time.sleep(10)
-    ext_oph_tasks_barplot(fig, ax[1, :], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC') # auroc, Average improvement: 0.11786051133333364, Average relative improvement: 0.14338705544766558 avg_ours: 0.9398350680000002 avg_r3d: 0.8219745566666665
+    ext_oph_tasks_barplot(fig, ax[1], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC') # auroc, Average improvement: 0.11786051133333364, Average relative improvement: 0.14338705544766558 avg_ours: 0.9398350680000002 avg_r3d: 0.8219745566666665
     fig.tight_layout(rect=[0, 0, 1, 0.98])
     fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=5, fontsize=12, frameon=False, columnspacing=0.8)
 
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2l.pdf'), dpi=300)
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2l.png'))
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2l_allinonebar.pdf'), dpi=300)
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2l_allinonebar.png'))
 
     # fig.tight_layout()
     # plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2l.pdf'), dpi=300)

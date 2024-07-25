@@ -17,10 +17,10 @@ retclip_exp_res_df = pd.read_csv(retclip_exp_res)
 print(retclip_exp_res_df)
 
 PLOT_METHODS_NAME = {
-    "MAE-joint": "Ours model (3D MAE)",
-    "retFound 3D": "RETFound 3D",
+    "MAE-joint": "OCTCube",
+    "retFound 3D": "RETFound (3D)",
     # "from_scratch 3D": "From scratch 3D",
-    "retFound 2D": "RETFound 2D",
+    "retFound 2D": "RETFound (2D)",
     # "from_scratch 2D": "From scratch 2D",
 }
 
@@ -61,9 +61,9 @@ def plot_retclip_recall_and_mean_rank(axes, retclip_exp_res_df, prefix, col_name
         line_y = np.mean(y_h) + np.std(y_h) / np.sqrt(len(y_h)) + delta_y
         stars = get_star_from_pvalue(p_value, star=True)
         ax.set_xticks([])
-        ax.set_xlabel(capitalize_first_letter(col_name), fontsize=8)
+        ax.set_xlabel(capitalize_first_letter(col_name), fontsize=14)
         if i == 0:
-            ax.set_ylabel(prefix.replace('_', ' '), fontsize=8)
+            ax.set_ylabel(prefix.replace('_', ' '), fontsize=14)
         # y_max = np.max(y)
         y_max = max(1, np.max(y)) 
         y_min = np.min(y)
@@ -72,14 +72,19 @@ def plot_retclip_recall_and_mean_rank(axes, retclip_exp_res_df, prefix, col_name
         x2 = (compare_idx + 1) * width
         print('y_max', y_max, 'y_min', y_min)
         if col_name == 'mean rank':
+            y_max = 175
+            print(y_max)
+            # exit()
             ax.set_ylim(0, y_max + 5)
         else:
+            # print(y_max)
+            y_max=1
             ax.set_ylim(-0.01, y_max + 0.01)
         if np.mean(y_h) > np.mean(y_l) and len(stars) > 0:
             ax.plot([x1, x1], [y[-1] + np.std(y_h)/np.sqrt(len(y_h)) + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
             ax.plot([x2, x2], [y[-2] + np.std(y_l)/np.sqrt(len(y_l)) + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
             ax.plot([x1, x2], [line_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
-            ax.text((x1 + x2)/2, line_y, stars, fontsize=7, ha='center', va='bottom')
+            ax.text((x1 + x2)/2, line_y, stars, fontsize=15, ha='center', va='bottom')
         format_ax(ax)
     return all_handles, all_labels
 
@@ -90,15 +95,15 @@ def plot_retclip_recall_and_mean_rank(axes, retclip_exp_res_df, prefix, col_name
 
 
 def plot_retclip_exp_res(retclip_exp_res_df):
-    fig, ax = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=4)
+    fig, ax = plt.subplots(figsize=(1*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=4)
     first_row_prefix = 'OCT_to_IR'
     second_row_prefix = 'IR_to_OCT'
     col_names = ['recall@1', 'recall@5', 'recall@10', 'mean rank']
     all_handles, all_labels = plot_retclip_recall_and_mean_rank(ax[0, :], retclip_exp_res_df, first_row_prefix, col_names)
     plot_retclip_recall_and_mean_rank(ax[1, :], retclip_exp_res_df, second_row_prefix, col_names)
-    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.012), ncol=3, fontsize=8, frameon=False)
-    fig.suptitle('AI-READI', fontsize=10, y=0.03)
-    fig.tight_layout()
+    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.012), ncol=3, fontsize=15, frameon=False)
+    fig.tight_layout(rect=[0, 0.02, 1, 0.95])
+    fig.suptitle('AI-READI', fontsize=15, y=0.04)
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'retClip_exp_res_aireadi_ci.png'))
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'retClip_exp_res_aireadi_ci.pdf'), dpi=300)
     # Draw bar plot for each metric

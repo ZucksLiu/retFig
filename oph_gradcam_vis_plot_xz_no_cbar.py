@@ -85,12 +85,12 @@ for i in image_index:
 num_frames = 7
 # plot
 fig, axs = plt.subplots(4, num_frames, figsize=(16, 9))
-axs[0, 0].set_ylabel('IR en face image', fontsize=14)
-axs[1, 0].set_ylabel('OCT slice', fontsize=14)
-axs[2, 0].set_ylabel('Saliency map\n (RETFound)', fontsize=14)
-axs[3, 0].set_ylabel('Saliency map\n (OCTCube)', fontsize=14)
+axs[0, 0].set_ylabel('IR en face image', fontsize=18)
+axs[1, 0].set_ylabel('OCT slice', fontsize=18)
+axs[2, 0].set_ylabel('Saliency map\n (RETFound)', fontsize=18)
+axs[3, 0].set_ylabel('Saliency map\n (OCTCube)', fontsize=18)
 for i in range(num_frames):
-    axs[0, i].set_title(f'Slice {image_index[i]}', fontsize=15)#, dim (y, z)')
+    axs[0, i].set_title(f'Slice {image_index[i]}', fontsize=18)#, dim (y, z)')
 
     axs[1, i].imshow(cv2.cvtColor(original_img[i], cv2.COLOR_BGR2RGB))
     axs[1, i].set_xticks([])  # Turn off x-axis ticks
@@ -207,48 +207,48 @@ for i in range(num_frames):
 # fig.text(0.053, 0.68, 'First 7 columns: \n Dimension (y, z)', ha='center', va='center', fontsize=12, color='red')
 # fig.text(0.782, 0.68, 'Last 2 columns: \n Dimension (x, z)', ha='center', va='center', fontsize=12, color='red')
 
-# use rainbow color map
-cmap = mpl.cm.rainbow
+# # use rainbow color map
+# cmap = mpl.cm.rainbow
 
-# Define the normalization from 0 to 1
-norm = mpl.colors.Normalize(vmin=0, vmax=1)
-# line_position = 7.5 / num_frames  # Position between the 7th and 8th frame, adjust as necessary
-# plt.axvline(x=line_position, color='grey', linestyle='--', linewidth=2, )
+# # Define the normalization from 0 to 1
+# norm = mpl.colors.Normalize(vmin=0, vmax=1)
+# # line_position = 7.5 / num_frames  # Position between the 7th and 8th frame, adjust as necessary
+# # plt.axvline(x=line_position, color='grey', linestyle='--', linewidth=2, )
 
-# Adjust the layout manually to leave space for the colorbar
-# plt.subplots_adjust(right=0.88, top=0.85, bottom=0.15, left=0.05)
-# Apply tight layout first with space for the colorbar
-fig.tight_layout(pad=0.5, h_pad=1.0, w_pad=1.0, rect=[0, 0, 0.965, 1])  # Leave space on the right
+# # Adjust the layout manually to leave space for the colorbar
+# # plt.subplots_adjust(right=0.88, top=0.85, bottom=0.15, left=0.05)
+# # Apply tight layout first with space for the colorbar
+fig.tight_layout(pad=0.5, h_pad=1.0, w_pad=1.0, rect=[0, 0, 0.995, 1])  # Leave space on the right
 
 
-# Add an additional axis at the right of the figure for the colorbar
-cbar_ax = fig.add_axes([0.97, 0.01, 0.02, 0.47])  # Adjust the left value to prevent overlapping
+# # Add an additional axis at the right of the figure for the colorbar
+# cbar_ax = fig.add_axes([0.97, 0.01, 0.02, 0.47])  # Adjust the left value to prevent overlapping
 
-# Create and display the colorbar
-cbar = fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), cax=cbar_ax, orientation='vertical',)
-# Misuse the ylabel to act as the colorbar label
-# cbar.ax.set_xlabel('Saliency', labelpad=10, rotation=0, fontsize=15)
-# cbar.set_label('Saliency', labelpad=0, rotation=0, verticalalignment='top')
-# cbar.set_label('Saliency', labelpad=10, rotation=270, va='top')
-# # Adjust layout to make sure nothing is clipped and labels are visible
-# cbar.set_label('Saliency', labelpad=10)
-# cbar.ax.xaxis.set_label_position('top')
-# cbar.ax.xaxis.set_ticks_position('top')
-# plt.colorbar(vmin=0, vmax=1, cmap='rainbow')
-cbar.ax.yaxis.set_ticks([])
+# # Create and display the colorbar
+# cbar = fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), cax=cbar_ax, orientation='vertical',)
+# # Misuse the ylabel to act as the colorbar label
+# # cbar.ax.set_xlabel('Saliency', labelpad=10, rotation=0, fontsize=15)
+# # cbar.set_label('Saliency', labelpad=0, rotation=0, verticalalignment='top')
+# # cbar.set_label('Saliency', labelpad=10, rotation=270, va='top')
+# # # Adjust layout to make sure nothing is clipped and labels are visible
+# # cbar.set_label('Saliency', labelpad=10)
+# # cbar.ax.xaxis.set_label_position('top')
+# # cbar.ax.xaxis.set_ticks_position('top')
+# # plt.colorbar(vmin=0, vmax=1, cmap='rainbow')
+# cbar.ax.yaxis.set_ticks([])
 
 line_position = (7 / num_frames)  # Adjust according to your specific layout
 # Adjusting x position according to the figure size
 x_position = line_position * (fig.get_size_inches()[0] * fig.dpi)
-fig.text(0.962, 0.5, r'($\uparrow$)', fontsize=20)
+# fig.text(0.962, 0.5, r'($\uparrow$)', fontsize=20)
 
 
 # Adding the line to the figure
 line = mlines.Line2D([x_position, x_position], [0, 1], transform=fig.transFigure, color="gray", linestyle="--", linewidth=2)
 fig.add_artist(line)
 # fig.tight_layout()
-plt.savefig(save_dir + 'gradcam_vis_plot_xz.jpg')
-plt.savefig(save_dir + 'gradcam_vis_plot_xz.pdf', format='pdf', dpi=300)
+plt.savefig(save_dir + 'gradcam_vis_plot_xz_nocbar.jpg')
+plt.savefig(save_dir + 'gradcam_vis_plot_xz_nocbar.pdf', format='pdf', dpi=300)
 
 
 

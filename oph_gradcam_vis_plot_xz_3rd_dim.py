@@ -82,98 +82,34 @@ for i in image_index:
     gradcam_3d_img_path = test_cam_3d_dir + f'/test_cam_{i}.jpg'
     gradcam_3d_img.append(cv2.imread(gradcam_3d_img_path))
 
-num_frames = 7
+num_frames = 8
 # plot
-fig, axs = plt.subplots(4, num_frames, figsize=(16, 9))
-axs[0, 0].set_ylabel('IR en face image', fontsize=14)
-axs[1, 0].set_ylabel('OCT slice', fontsize=14)
-axs[2, 0].set_ylabel('Saliency map\n (RETFound)', fontsize=14)
-axs[3, 0].set_ylabel('Saliency map\n (OCTCube)', fontsize=14)
-for i in range(num_frames):
-    axs[0, i].set_title(f'Slice {image_index[i]}', fontsize=15)#, dim (y, z)')
+fig, axs = plt.subplots(4, num_frames, figsize=(18, 9))
+axs[0, 0].set_ylabel('IR en face image (w/ AMD)', fontsize=14)
+axs[1, 0].set_ylabel('Raw OCT slice', fontsize=14)
+axs[2, 0].set_ylabel('RETFound saliency', fontsize=14)
+axs[3, 0].set_ylabel('OCTCube saliency', fontsize=14)
+# for i in range(num_frames):
+#     axs[0, i].set_title(f'Slice {image_index[i]}', fontsize=15)#, dim (y, z)')
 
-    axs[1, i].imshow(cv2.cvtColor(original_img[i], cv2.COLOR_BGR2RGB))
-    axs[1, i].set_xticks([])  # Turn off x-axis ticks
-    axs[1, i].set_yticks([])  # Turn off y-axis ticks
-    # axs[0, i].axis('off')
+#     axs[1, i].imshow(cv2.cvtColor(original_img[i], cv2.COLOR_BGR2RGB))
+#     axs[1, i].set_xticks([])  # Turn off x-axis ticks
+#     axs[1, i].set_yticks([])  # Turn off y-axis ticks
+#     # axs[0, i].axis('off')
     
-    axs[2, i].imshow(cv2.cvtColor(gradcam_img[i], cv2.COLOR_BGR2RGB))
-    axs[2, i].set_xticks([])  # Turn off x-axis ticks
-    axs[2, i].set_yticks([])  # Turn off y-axis ticks
-    # axs[1, i].axis('off')
-    axs[3, i].imshow(cv2.cvtColor(gradcam_3d_img[i], cv2.COLOR_BGR2RGB))
-    axs[3, i].set_xticks([])  # Turn off x-axis ticks
-    axs[3, i].set_yticks([])  # Turn off y-axis ticks
-    # axs[2, i].axis('off')
+#     axs[2, i].imshow(cv2.cvtColor(gradcam_img[i], cv2.COLOR_BGR2RGB))
+#     axs[2, i].set_xticks([])  # Turn off x-axis ticks
+#     axs[2, i].set_yticks([])  # Turn off y-axis ticks
+#     # axs[1, i].axis('off')
+#     axs[3, i].imshow(cv2.cvtColor(gradcam_3d_img[i], cv2.COLOR_BGR2RGB))
+#     axs[3, i].set_xticks([])  # Turn off x-axis ticks
+#     axs[3, i].set_yticks([])  # Turn off y-axis ticks
+#     # axs[2, i].axis('off')
     
-    axs[0, i].imshow(cv2.cvtColor(ir_img, cv2.COLOR_BGR2RGB))
-    axs[0, i].set_xticks([])  # Turn off x-axis ticks
-    axs[0, i].set_yticks([])  # Turn off y-axis ticks
-    line = octh[image_index[i]]
-    x1, y1, x2, y2 = line
-    k = (y2 - y1) / (x2 - x1)
-    if x1 < 0:
-        x1 = 0
-        y1 = y2 - k * x2
-    if y1 < 0:
-        y1 = 0
-        x1 = x2 - y2 / k
-    if x2 < 0:
-        x2 = 0
-        y2 = y1 + k * x1
-    if y2 < 0:
-        y2 = 0
-        x2 = x1 + y1 / k
-    if x1 > 768:
-        x1 = 768
-        y1 = y2 - k * x2
-    if y1 > 768:
-        y1 = 768
-        x1 = x2 - (y2 - 768) / k
-    if x2 > 767:
-        x2 = 767
-        y2 = y1 + k * x1
-    if y2 > 767:
-        y2 = 767
-        x2 = x1 + (767 - y1) / k
-    axs[0, i].plot([y1, y2], [x1, x2], 'r-', linewidth=7, alpha=0.5)
-    # line_start = octh[0]
-    # x1, y1, x2, y2 = line_start
-    # axs[3,i].plot([y1, y2], [x1, x2], 'r-', linewidth=2)
-    # line_end = octh[-1]
-    # x1, y1, x2, y2 = line_end
-    # axs[3, i].plot([y1, y2], [x1, x2], 'b-', linewidth=2)
-
-# cam_2_image_index = [108, 116]
-# for i in range(2):
-#     test_cam_2_original_img_path = test_cam_2_dir + f'original/test_cam_{cam_2_image_index[i]}.jpg'
-#     test_cam_2_gradcam_img_path = test_cam_2_dir + f'/test_cam_{cam_2_image_index[i]}.jpg'
-#     test_cam_3d_2_original_img_path = test_cam_3d_2_dir + f'original/test_cam_{cam_2_image_index[i]}.jpg'
-#     test_cam_3d_2_gradcam_img_path = test_cam_3d_2_dir + f'/test_cam_{cam_2_image_index[i]}.jpg'
-#     test_cam_2_original_img = cv2.imread(test_cam_2_original_img_path)
-#     test_cam_2_gradcam_img = cv2.imread(test_cam_2_gradcam_img_path)
-#     axs[0, num_frames - 2 + i].set_title(f'Frame {cam_2_image_index[i]}')#, dim (x, z)')
-
-
-#     axs[1, num_frames - 2 + i].imshow(cv2.cvtColor(test_cam_2_original_img, cv2.COLOR_BGR2RGB))
-#     axs[1, num_frames - 2 + i].set_xticks([])  # Turn off x-axis ticks
-#     axs[1, num_frames - 2 + i].set_yticks([])  # Turn off y-axis ticks
-#     # axs[0, num_frames - 2 + i].axis('off')
-
-#     axs[2, num_frames - 2 + i].imshow(cv2.cvtColor(test_cam_2_gradcam_img, cv2.COLOR_BGR2RGB))
-#     axs[2, num_frames - 2 + i].set_xticks([])  # Turn off x-axis ticks
-#     axs[2, num_frames - 2 + i].set_yticks([])  # Turn off y-axis ticks
-#     # axs[1, num_frames - 2 + i].axis('off')
-
-#     axs[3, num_frames - 2 + i].imshow(cv2.cvtColor(cv2.imread(test_cam_3d_2_gradcam_img_path), cv2.COLOR_BGR2RGB))
-#     axs[3, num_frames - 2 + i].set_xticks([])  # Turn off x-axis ticks
-#     axs[3, num_frames - 2 + i].set_yticks([])  # Turn off y-axis ticks
-#     # axs[2, num_frames - 2 + i].axis('off')
-
-#     axs[0, num_frames - 2 + i].imshow(cv2.cvtColor(ir_img, cv2.COLOR_BGR2RGB))
-#     axs[0, num_frames - 2 + i].set_xticks([])  # Turn off x-axis ticks
-#     axs[0, num_frames - 2 + i].set_yticks([])  # Turn off y-axis ticks
-#     line = interpolate_line(octh, cam_2_image_index[i], 256)
+#     axs[0, i].imshow(cv2.cvtColor(ir_img, cv2.COLOR_BGR2RGB))
+#     axs[0, i].set_xticks([])  # Turn off x-axis ticks
+#     axs[0, i].set_yticks([])  # Turn off y-axis ticks
+#     line = octh[image_index[i]]
 #     x1, y1, x2, y2 = line
 #     k = (y2 - y1) / (x2 - x1)
 #     if x1 < 0:
@@ -188,11 +124,11 @@ for i in range(num_frames):
 #     if y2 < 0:
 #         y2 = 0
 #         x2 = x1 + y1 / k
-#     if x1 > 767:
-#         x1 = 767
+#     if x1 > 768:
+#         x1 = 768
 #         y1 = y2 - k * x2
-#     if y1 > 767:
-#         y1 = 767
+#     if y1 > 768:
+#         y1 = 768
 #         x1 = x2 - (y2 - 768) / k
 #     if x2 > 767:
 #         x2 = 767
@@ -200,13 +136,76 @@ for i in range(num_frames):
 #     if y2 > 767:
 #         y2 = 767
 #         x2 = x1 + (767 - y1) / k
+#     axs[0, i].plot([y1, y2], [x1, x2], 'r-', linewidth=7, alpha=0.5)
+#     # line_start = octh[0]
+#     # x1, y1, x2, y2 = line_start
+#     # axs[3,i].plot([y1, y2], [x1, x2], 'r-', linewidth=2)
+#     # line_end = octh[-1]
+#     # x1, y1, x2, y2 = line_end
+#     # axs[3, i].plot([y1, y2], [x1, x2], 'b-', linewidth=2)
 
-#     axs[0, num_frames - 2 + i].plot([y1, y2], [x1, x2], 'r-', linewidth=1)
+cam_2_image_index = [108, 116, 124, 128, 132, 140, 148, 156]
+for i in range(num_frames):
+    test_cam_2_original_img_path = test_cam_2_dir + f'original/test_cam_{cam_2_image_index[i]}.jpg'
+    test_cam_2_gradcam_img_path = test_cam_2_dir + f'/test_cam_{cam_2_image_index[i]}.jpg'
+    test_cam_3d_2_original_img_path = test_cam_3d_2_dir + f'original/test_cam_{cam_2_image_index[i]}.jpg'
+    test_cam_3d_2_gradcam_img_path = test_cam_3d_2_dir + f'/test_cam_{cam_2_image_index[i]}.jpg'
+    test_cam_2_original_img = cv2.imread(test_cam_2_original_img_path)
+    test_cam_2_gradcam_img = cv2.imread(test_cam_2_gradcam_img_path)
+    axs[0, i].set_title(f'Slice {cam_2_image_index[i]}', fontsize=15)#, dim (x, z)')
+
+
+    axs[1, i].imshow(cv2.cvtColor(test_cam_2_original_img, cv2.COLOR_BGR2RGB))
+    axs[1, i].set_xticks([])  # Turn off x-axis ticks
+    axs[1, i].set_yticks([])  # Turn off y-axis ticks
+    # axs[0, num_frames - 2 + i].axis('off')
+
+    axs[2, i].imshow(cv2.cvtColor(test_cam_2_gradcam_img, cv2.COLOR_BGR2RGB))
+    axs[2, i].set_xticks([])  # Turn off x-axis ticks
+    axs[2, i].set_yticks([])  # Turn off y-axis ticks
+    # axs[1, num_frames - 2 + i].axis('off')
+
+    axs[3, i].imshow(cv2.cvtColor(cv2.imread(test_cam_3d_2_gradcam_img_path), cv2.COLOR_BGR2RGB))
+    axs[3, i].set_xticks([])  # Turn off x-axis ticks
+    axs[3, i].set_yticks([])  # Turn off y-axis ticks
+    # axs[2, num_frames - 2 + i].axis('off')
+
+    axs[0, i].imshow(cv2.cvtColor(ir_img, cv2.COLOR_BGR2RGB))
+    axs[0, i].set_xticks([])  # Turn off x-axis ticks
+    axs[0, i].set_yticks([])  # Turn off y-axis ticks
+    line = interpolate_line(octh, cam_2_image_index[i], 256)
+    x1, y1, x2, y2 = line
+    k = (y2 - y1) / (x2 - x1)
+    if x1 < 0:
+        x1 = 0
+        y1 = y2 - k * x2
+    if y1 < 0:
+        y1 = 0
+        x1 = x2 - y2 / k
+    if x2 < 0:
+        x2 = 0
+        y2 = y1 + k * x1
+    if y2 < 0:
+        y2 = 0
+        x2 = x1 + y1 / k
+    if x1 > 767:
+        x1 = 767
+        y1 = y2 - k * x2
+    if y1 > 767:
+        y1 = 767
+        x1 = x2 - (y2 - 768) / k
+    if x2 > 767:
+        x2 = 767
+        y2 = y1 + k * x1
+    if y2 > 767:
+        y2 = 767
+        x2 = x1 + (767 - y1) / k
+
+    axs[0, i].plot([y1, y2], [x1, x2], 'r-', linewidth=1)
 
 # Use fig.text to add global annotations
 # fig.text(0.053, 0.68, 'First 7 columns: \n Dimension (y, z)', ha='center', va='center', fontsize=12, color='red')
 # fig.text(0.782, 0.68, 'Last 2 columns: \n Dimension (x, z)', ha='center', va='center', fontsize=12, color='red')
-
 # use rainbow color map
 cmap = mpl.cm.rainbow
 
@@ -236,19 +235,17 @@ cbar = fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), cax=cbar_ax, or
 # cbar.ax.xaxis.set_ticks_position('top')
 # plt.colorbar(vmin=0, vmax=1, cmap='rainbow')
 cbar.ax.yaxis.set_ticks([])
-
 line_position = (7 / num_frames)  # Adjust according to your specific layout
 # Adjusting x position according to the figure size
 x_position = line_position * (fig.get_size_inches()[0] * fig.dpi)
-fig.text(0.962, 0.5, r'($\uparrow$)', fontsize=20)
-
+fig.text(0.963, 0.5, r'($\uparrow$)', fontsize=20)
 
 # Adding the line to the figure
 line = mlines.Line2D([x_position, x_position], [0, 1], transform=fig.transFigure, color="gray", linestyle="--", linewidth=2)
 fig.add_artist(line)
 # fig.tight_layout()
-plt.savefig(save_dir + 'gradcam_vis_plot_xz.jpg')
-plt.savefig(save_dir + 'gradcam_vis_plot_xz.pdf', format='pdf', dpi=300)
+plt.savefig(save_dir + 'gradcam_vis_plot_xz_3rd.jpg')
+plt.savefig(save_dir + 'gradcam_vis_plot_xz_3rd.pdf', format='pdf', dpi=300)
 
 
 

@@ -78,7 +78,7 @@ print("Inhouse dataset eval setting: ", AIREADI_OPH_DATASET_EVAL_SETTING)
 
 
 # -----------------BASELINE SETTINGS-----------------
-BASELINE = ["MAE-joint", "retfound"]# , "MAE2D"] #"linear_probe", "unlock_top"]
+BASELINE = ["MAE-joint", "retfound", "from_scratch"]# , "MAE2D"] #"linear_probe", "unlock_top"]
 FRAME_DICT = {"3D": "3D", "2D": "2DCenter"}
 # SETTING_DICT = {"fewshot": "correct_patient_fewshot", "default": "correct_patient"}
 SETTING_DICT = {"default": "5fold_3d_256_0509"} #, "lock_part": "unlock_part", "linear_probe": "linear_probe"}
@@ -87,7 +87,8 @@ SETTING_DICT = {"default": "5fold_3d_256_0509"} #, "lock_part": "unlock_part", "
 INHOUSE_EVAL_FRAME = {
     "MAE-joint": ["3D"],
     "retfound": ["3D", "2D"],
-    "MAE2D": ["3D"],
+    "from_scratch": ["3D", "2D"],
+    # "MAE2D": ["3D"],
     # "linear_probe": ["3D"],
     # "unlock_top": ["3D"],
 
@@ -100,16 +101,18 @@ EXPR_DEFAULT_NAME_DICT = {
     # "from_scratch 3D": ["outputs_ft_st_0529_ckpt_flash_attn", "singlefold_no_retfound"],
     "MAE2D 3D": ["outputs_ft_st_0612_2cls_01_ckpt_flash_attn_bal_acc",  "mae2d"],
     "MAE-joint 3D": ["outputs_ft_st_0612_2cls_01_ckpt_flash_attn_bal_acc", "nodrop"],
+    "from_scratch 2D": ["outputs_ft_st_0612_2cls_01_ckpt_flash_attn_bal_acc", "retfound"],
+    "from_scratch 3D": ["outputs_ft_st_0612_2cls_01_ckpt_flash_attn_bal_acc", "retfound"],
 }
 
 # Exteneded baseline methods with dimensionality and the plotting method name
 PLOT_METHODS_NAME = {
-    "MAE-joint 3D": "OctCube",
-    "retfound 3D": "RETFound 3D",
-    # "from_scratch 3D": "From scratch 3D",
-    "retfound 2D": "RETFound 2D",
-    "MAE2D 3D": "2D MAE as 3D"
-    # "from_scratch 2D": "From scratch 2D",
+    "MAE-joint 3D": "OCTCube",
+    "retfound 3D": "RETFound (3D)",
+    "from_scratch 3D": "Supervised (3D, w/o pre-training)",
+    "retfound 2D": "RETFound (2D)",
+    # "MAE2D 3D": "2D MAE as 3D"
+    "from_scratch 2D": "Supervised (3D, w/0 pre-training)",
 }
 
 # -----------------MISC SUFFIX SETTINGS-----------------
@@ -138,8 +141,11 @@ MISC_SUFFIX_DICT = {
     # ("oimhs", "default", "outputs_ft_st", "3D"): "correct_15",
     # ("maes", "default", "retfound", "3D"): "normalize",
     ('maes', 'default', 'retfound', '3D'): "reproduce_10folds",
-    ('maes', 'default', 'MAE-joint', '3D'): "reproduce_10folds_new",
     ('maes', 'default', 'retfound', '2D'): "50",
+    ('maes', 'default', 'MAE-joint', '3D'): "reproduce_10folds_new",
+    ('maes', 'default', 'from_scratch', '3D'): "reproduce_10folds_fromscratch",
+    ('maes', 'default', 'from_scratch', '2D'): "50_fromscratch",
+
     ('spec', 'default', 'retfound', '2D'): "50",
     ('triton', 'default', 'retfound', '2D'): "50",
     # ("maes", "default", "MAE-joint", "3D"): ""
@@ -288,9 +294,9 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
         
         best_y, compare_col = -np.inf, ''
         for j, m in enumerate(plot_methods):
-            print(j, m)
+            
             y = np.mean(df_dict[plot_task][m][:, plot_col_idx])
-
+            print('test:', j, m, y)
             handle = ax.bar((j + 1) * width, y, width, label=plot_methods_name[j], color=COLORS_AIREADI[plot_methods_name_key[j]], zorder=3)
             if err_bar:
                 y_std_err = np.std(df_dict[plot_task][m][:, plot_col_idx].tolist()) / \
@@ -438,10 +444,10 @@ if __name__ == '__main__':
     #     results[TASKS[task]] = df_dict
 
     # plot the subfigure a-e
-    AIREADI_oph_tasks_barplot(fig, axes[1], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods= [('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D')], #, ('MAE2D', '3D')], 
+    AIREADI_oph_tasks_barplot(fig, axes[1], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods= [('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D'), ('from_scratch', '3D'), ('from_scratch', '2D')], #, ('MAE2D', '3D')], 
     y_name='AUPRC')
     # plot the subfigure f-j
-    all_handles, all_labels = AIREADI_oph_tasks_barplot(fig, axes[0], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D'), ], #('MAE2D', '3D')], 
+    all_handles, all_labels = AIREADI_oph_tasks_barplot(fig, axes[0], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D'), ('from_scratch', '3D'), ('from_scratch', '2D') ], #('MAE2D', '3D')], 
     y_name='AUROC')
     # INHOUSE_oph_tasks_barplot(fig, axes[2, :], grouped_dict, setting_code='fewshot', plot_col='bal_acc', plot_tasks=[], plot_methods=[], y_name='BALANCED_ACC')
     # mutation_5_tasks_barplot_fixed_range(axes[1, :], results, 'macro_auprc', list(TASKS.values()), list(EXP_CODE_DICT.keys()), 'AUPRC', y_min=0.0, y_max=0.45)
