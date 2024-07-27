@@ -1,9 +1,11 @@
 import os
 import numpy as np
 import pandas as pd
+import json
 
 this_file_dir = '/home/zucksliu/retfound_baseline/'
 FRAME_DICT = {"3D": "3D", "2D": "2DCenter"}
+save_file_dir = os.path.dirname(os.path.abspath(__file__))
 
 PLOT_METHODS_NAME = {
     "MAE-joint 3D": "OCTCube",
@@ -256,5 +258,18 @@ inhouse_non_oph_grouped_dict = get_inhouse_non_oph_task_and_setting_grouped_dict
 print(inhouse_non_oph_grouped_dict)
 inhouse_non_oph_max_val_dict = get_inhouse_non_oph_run_max_val_col(inhouse_non_oph_macro_results_dict)
 inhouse_non_oph_organized_dict = get_inhouse_non_oph_organized_run_results(inhouse_non_oph_grouped_dict, inhouse_non_oph_max_val_dict)
+
+inhouse_non_oph_organized_dict_joint_name = {}
+for task, task_dict in inhouse_non_oph_organized_dict['default'].items():
+    inhouse_non_oph_organized_dict_joint_name[task] = {}
+    for baseline_and_frame, runs_dict in task_dict.items():
+        baseline, frame = baseline_and_frame
+        baseline_plus_frame = f"{baseline} {frame}"
+        inhouse_non_oph_organized_dict_joint_name[task][baseline_plus_frame] = runs_dict
+
 print('grouped_dict:', inhouse_non_oph_grouped_dict['default']['E11'])
 print('organized_dict:', inhouse_non_oph_organized_dict)
+save_path = os.path.join(save_file_dir, 'save_figs', 'inhouse_non_oph_organized_dict_joint_name.json')
+with open(save_path, 'w') as f:
+    json.dump(inhouse_non_oph_organized_dict_joint_name, f, indent=2)
+    
