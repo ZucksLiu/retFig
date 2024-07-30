@@ -23,8 +23,8 @@ PLOT_METHODS_NAME = {
 plot_col_idx = ['auroc', 'acc', 'auprc', 'bal_acc']
 plot_col = 0
 plot_name = 'auroc'
-plot_col = 2
-plot_name = 'auprc'
+# plot_col = 2
+# plot_name = 'auprc'
 
 save_file_dir = os.path.dirname(os.path.abspath(__file__))
 retclip_exp_res = os.path.join(save_file_dir, 'retClip_exp_res.csv')
@@ -55,14 +55,17 @@ for task in inhouse_non_oph_organized_dict['default'].keys():
 
 print(res_df_dict)
 
-for task in inhouse_grouped_dict['fewshot'].keys():
-    for key, value in inhouse_grouped_dict['fewshot'][task].items():
+inhouse_setting = 'default'
+# inhouse_setting = 'fewshot'
+for task in inhouse_grouped_dict[inhouse_setting].keys():
+    for key, value in inhouse_grouped_dict[inhouse_setting][task].items():
         value = value[0]
         print(value)
         if key in res_df_dict:
             res_df_dict[key][task] = value[0][plot_col]
 
 print(res_df_dict)
+exit()
 print(ext_oph_grouped_dict)
 for task in ext_oph_grouped_dict['fewshot'].keys():
     for key, value in ext_oph_grouped_dict['fewshot'][task].items():
@@ -106,7 +109,7 @@ for idx, row in retclip_exp_res_aireadi_df.iterrows():
     res_df_dict[task][plot_col_used + ' AI-READI'] = row[plot_col_used]
 
 print(res_df_dict, len(res_df_dict[('MAE-joint', '3D')]))
-
+exit()
 def plot_radar(df, ax, is_fill=True, is_box=False):
     categories = list(df.index)
     N = len(categories) # What will be the angle of each axis in the plot?

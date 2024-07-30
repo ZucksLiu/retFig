@@ -283,10 +283,10 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
 
         xticks_list.append(i * width * (len(plot_methods) + 1) + width * (len(plot_methods) + 1) / 2)
         xticks_label.append(plot_task)
-        ax.tick_params(axis='both', which='major', labelsize=18)
+        ax.tick_params(axis='both', which='major', labelsize=16)
         # ax.set_xlabel(plot_task, fontsize=12)
         if i == 0:
-            ax.set_ylabel(y_name, fontsize=20)
+            ax.set_ylabel(y_name, fontsize=16)
         #ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         
         # add significance symbol
@@ -311,8 +311,11 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
     print('max_width:', max_width)
     # exit()
     ax.set_ylim(floor_to_nearest(y_min, 0.004), y_max)
+    print('y_max:', y_max)
+    if plot_col == 'auprc':
+        ax.set_yticks([0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
     ax.set_xticks(xticks_list)
-    ax.set_xticklabels(xticks_label, fontsize=20)
+    ax.set_xticklabels(xticks_label, fontsize=16)
     ax.set_xlim(0.05, max_width + width)
     avg_ours = np.mean(agg_ours)
     avg_r3d = np.mean(agg_r3d)

@@ -369,7 +369,10 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
             ax.text((x1 + x2)/2, line_y, stars, fontsize=30, ha='center', va='bottom')
         format_ax(ax)
         print('line_y', line_y, delta_y, line_y + 2*delta_y)
-        ax.set_ylim(floor_to_nearest(y_min, 0.004), line_y + 1*delta_y)
+
+        # ax.set_ylim(floor_to_nearest(y_min, 0.004), line_y + 1*delta_y)
+        ax.set_ylim(floor_to_nearest(y_min, 0.004), 0.701)
+        ax.set_yticks([0.5, 0.54, 0.58, 0.62, 0.66, 0.7])
         ax.tick_params(axis='y', labelsize=15, )
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     return all_handles, all_labels

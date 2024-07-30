@@ -622,7 +622,7 @@ def OIMHS_oph_tasks_lineplot(fig, ax, grouped_dict, setting_code='fewshot', plot
         # print(compare_col, plot_methods_name[0], p_value)
 
         ax.set_xticks(RATIO_SETTING)
-        ax.tick_params(axis='x', labelsize=25)
+        ax.tick_params(axis='x', labelsize=30)
         ax.set_xlabel('Ratio of training data', fontsize=25)
         if j == 0:
             print('y_name', y_name)
@@ -638,7 +638,7 @@ def OIMHS_oph_tasks_lineplot(fig, ax, grouped_dict, setting_code='fewshot', plot
         format_ax(ax)
         # print('line_y', line_y, delta_y, line_y + 2*delta_y)
         ax.set_ylim(floor_to_nearest(y_min, 0.004), y_max + 1*delta_y)
-        ax.tick_params(axis='y', labelsize=25)
+        ax.tick_params(axis='y', labelsize=30)
     for i, plot_task in enumerate(plot_tasks):
 
         x = RATIO_SETTING[i]
@@ -823,7 +823,7 @@ if __name__ == '__main__':
     metric = 'auprc'
     OIMHS_oph_tasks_lineplot(fig, axes[1], grouped_dict, setting_code='default', plot_col=metric, plot_tasks=[], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D')], y_name=metric_name_dict[metric])
     fig.tight_layout()
-    # fig.tight_layout(rect=[0,0,1,0.95])
+    # fig.tight_layout(rect=[0, 0, 1, 0.95])
     # fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.02), ncol=3, fontsize=25, frameon=False)
     
     # fig.subplots_adjust(top=0.97)    
