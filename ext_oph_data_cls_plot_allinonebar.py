@@ -262,7 +262,7 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
                 all_handles.append(handle)
                 all_labels.append(plot_methods_name[j])
         agg_ours.append(np.mean(df_dict[plot_task][plot_methods[0]][:, plot_col_idx]))
-        agg_r3d.append(np.mean(df_dict[plot_task][plot_methods[2]][:, plot_col_idx]))
+        agg_r3d.append(np.mean(df_dict[plot_task][plot_methods[1]][:, plot_col_idx]))
         y_min = np.min([np.mean(df_dict[plot_task][m][:, plot_col_idx]) for m in plot_methods])
         if plot_col == 'auroc':
             y_min = np.min([y_min, 0.5])
@@ -373,11 +373,12 @@ if __name__ == '__main__':
 
     # plot the subfigure a-e
     ext_oph_tasks_barplot(fig, axes[0], grouped_dict, setting_code='fewshot', plot_col='auprc', plot_tasks=[], plot_methods=[], plot_methods_name=None, y_name='AUPRC') # auprc, Average improvement: 0.11126311360000019, Average relative improvement: 0.16845254565233772 avg_ours: 0.7717643436 avg_r3d: 0.6605012299999998
+    # auprc, Average improvement: 0.06042830919999986, Average relative improvement: 0.0849504401263323 avg_ours: 0.7717643436 avg_r3d: 0.7113360344000002
     import time 
-    # time.sleep(10)
+    time.sleep(10)
     # plot the subfigure f-j
-    all_handles, all_labels = ext_oph_tasks_barplot(fig, axes[1], grouped_dict, setting_code='fewshot', plot_col='auroc', plot_tasks=[], plot_methods=[], plot_methods_name=None, y_name='AUROC') # auroc, Average improvement: 0.11160484419999994, Average relative improvement: 0.15939239997895133 avg_ours: 0.8117940892 avg_r3d: 0.700189245
-    # fig.
+    all_handles, all_labels = ext_oph_tasks_barplot(fig, axes[1], grouped_dict, setting_code='fewshot', plot_col='auroc', plot_tasks=[], plot_methods=[], plot_methods_name=None, y_name='AUROC') # auroc, Average improvement: 0.11160484419999994, Average relative improvement: 0.15939239997895133 avg_ours: 0.8117940892 avg_r2d: 0.700189245
+    # auroc, Average improvement: 0.05221426259999984, Average relative improvement: 0.06874098122605383 avg_ours: 0.8117940892 avg_r3d: 0.7595798266000001
     # plot the subfigure k
     fig.tight_layout( rect=[0, 0, 1, 0.97])
     # fig.tight_layout()
@@ -388,12 +389,14 @@ if __name__ == '__main__':
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k_allinonebar.pdf'), dpi=300)
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k_allinonebar.png'))
     import time 
-    # time.sleep(10)
+    time.sleep(10)
     fig, ax = plt.subplots(figsize=(1.7*FIG_WIDTH, 1*FIG_HEIGHT), nrows=2, ncols=1)
-    ext_oph_tasks_barplot(fig, ax[0], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC') # auprc, Average improvement: 0.10738472466666671, Average relative improvement: 0.13508076692873475 avg_ours: 0.902351522 avg_r3d: 0.7949667973333333
+    ext_oph_tasks_barplot(fig, ax[0], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC') # auprc, Average improvement: 0.10738472466666671, Average relative improvement: 0.13508076692873475 avg_ours: 0.902351522 avg_r2d: 0.7949667973333333
+    # auprc, Average improvement: 0.04883465400000009, Average relative improvement: 0.05721580419896293 avg_ours: 0.902351522 avg_r3d: 0.8535168679999999
     import time 
-    # time.sleep(10)
-    ext_oph_tasks_barplot(fig, ax[1], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC') # auroc, Average improvement: 0.11786051133333364, Average relative improvement: 0.14338705544766558 avg_ours: 0.9398350680000002 avg_r3d: 0.8219745566666665
+    time.sleep(10)
+    ext_oph_tasks_barplot(fig, ax[1], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC') # auroc, Average improvement: 0.11786051133333364, Average relative improvement: 0.14338705544766558 avg_ours: 0.9398350680000002 avg_r2d: 0.8219745566666665
+    # auroc, Average improvement: 0.04176041800000019, Average relative improvement: 0.04649994073432558 avg_ours: 0.9398350680000002 avg_r3d: 0.89807465 real r3d
     fig.tight_layout(rect=[0, 0, 1, 0.98])
     fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=5, fontsize=12, frameon=False, columnspacing=0.8)
 

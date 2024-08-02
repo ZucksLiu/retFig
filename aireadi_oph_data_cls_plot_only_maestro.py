@@ -289,6 +289,11 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
     width = 0.7 / n_methods # set the barplot width
     all_handles = []  # List to store all handles for legend
     all_labels = []   # List to store all labels for legend
+
+    agg_ours = []
+    agg_r3d = []
+    agg_r2d = []
+
     for i, plot_task in enumerate(plot_tasks):
         ax = axes
         
@@ -309,7 +314,19 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
             if i == 0:  # Collect handle for legend only once per method across all tasks
                 all_handles.append(handle)
                 all_labels.append(plot_methods_name[j])
-
+        agg_ours.append(np.mean(df_dict[plot_task][plot_methods[0]][:, plot_col_idx]))
+        agg_r3d.append(np.mean(df_dict[plot_task][plot_methods[1]][:, plot_col_idx]))
+        agg_r2d.append(np.mean(df_dict[plot_task][plot_methods[2]][:, plot_col_idx]))
+        print('agg:', agg_ours, agg_r3d, agg_r2d)
+        avg_ours = np.mean(agg_ours)
+        avg_r3d = np.mean(agg_r3d)
+        avg_r2d = np.mean(agg_r2d)
+        avg_improvement = avg_ours - avg_r3d
+        avg_rel_improvement = avg_improvement / avg_r3d
+        avg_improvement_2d = avg_ours - avg_r2d
+        avg_rel_improvement_2d = avg_improvement_2d / avg_r2d
+        print(f'{plot_col}, Average improvement: {avg_improvement}, Average relative improvement: {avg_rel_improvement}', 'avg_ours:', avg_ours, 'avg_r3d:', avg_r3d)  
+        print(f'{plot_col}, Average improvement 2D: {avg_improvement_2d}, Average relative improvement 2D: {avg_rel_improvement_2d}', 'avg_ours:', avg_ours, 'avg_r2d:', avg_r2d)
         y_min = np.min([np.mean(df_dict[plot_task][m][:, plot_col_idx]) for m in plot_methods])
         if plot_col == 'auroc':
             y_min = np.min([y_min, 0.5])

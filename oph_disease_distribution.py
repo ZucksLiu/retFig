@@ -11,6 +11,18 @@ icd10_code_dir = Oph_cls_task_directory + 'multi_label_expr_all_0529/'
 multilabel_dict_json = icd10_code_dir + 'multilabel_cls_dict.json'
 out_dir = home_directory + 'retFig/save_figs/'
 
+disease_name_mapping = {
+    'None': 'None',
+    'AMD': 'AMD',
+    'VD': 'VD',
+    'ODR': 'DR',
+    'PM': 'ERM/MH',
+    'POG': 'POAG',
+    'DME': 'DME',
+    'CRO': 'CRAO/CRVO',
+    'RN': 'RNV',
+}
+
 with open(multilabel_dict_json, 'r') as f:
     multilabel_dict = json.load(f)
     # print(multilabel_dict)
@@ -39,7 +51,8 @@ for i, disease_icd in enumerate(disease_list.keys()):
 print(len(filtered_disease_list))
 # plot the distribution of the diseases
 sorted_disease_list = sorted(filtered_disease_list.items(), key=lambda x: x[1], reverse=True)
-
+print(sorted_disease_list)
+# exit()
 plt.figure(figsize=(14, 10))
 plt.gcf().set_facecolor('#f0f0f0')  # Set the background color for the entire figure
 
@@ -53,7 +66,7 @@ bars = plt.bar(list(range(len(sorted_disease_list))), [x[1] for x in sorted_dise
 # ax.set_facecolor('#f0f0f0')
 plt.gca().set_facecolor('#f0f0f0')
 # Adjust the ticks and labels
-plt.xticks(range(len(sorted_disease_list)), [x[0] for x in sorted_disease_list], ha='center', fontsize=15)
+plt.xticks(range(len(sorted_disease_list)), [disease_name_mapping[x[0]] for x in sorted_disease_list], ha='center', fontsize=15)
 plt.ylabel('Number of patients', fontsize=20)
 plt.xlabel('Disease name abbreviation', fontsize=20)
 # set font size of yticks
