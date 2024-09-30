@@ -19,15 +19,15 @@ home_directory = os.path.expanduser('~') + '/'
 # test_cam_3d_2_dir = home_directory + '/test_cam_3d_2/'
 retFig_dir = home_directory + '/retFig/'
 save_dir = home_directory + '/retFig/save_figs/'
-# patient_id = 'f509349545c3f6d1d871f39373335dd4250f2ecaa03379daa34f50fc7e503b7f'
-# visit_hash = 'b1a401a8aac6a91e5e947f6e1ce662951efba436808df463a0c1382e4fcad8ba'
-# patient_idx = 849
-# title = 'Diabetes patient OD'
 patient_id = 'f509349545c3f6d1d871f39373335dd4250f2ecaa03379daa34f50fc7e503b7f'
-visit_hash = '8bd87146c0abc05fb88ea23b58f49a18d5401191139740862915d4e258d0faf0'
+visit_hash = 'b1a401a8aac6a91e5e947f6e1ce662951efba436808df463a0c1382e4fcad8ba'
+patient_idx = 849
+title = 'Diabetes patient OD'
+# patient_id = 'f509349545c3f6d1d871f39373335dd4250f2ecaa03379daa34f50fc7e503b7f'
+# visit_hash = '8bd87146c0abc05fb88ea23b58f49a18d5401191139740862915d4e258d0faf0'
 # # visit_hash = '2377255a873510e7352cecce5eeee79fca54f53c36dd967bbc188422249bef73'
-patient_idx = 848
-title = 'Diabetes patient OS'
+# patient_idx = 848
+# title = 'Diabetes patient OS'
 # visit_hash = '859c5e5091f29a474581ac321c2c37c47a0535dc53a98169afdf2588a823cb0c'
 # patient_idx = 8490
 # title = 'Diabetes patient OD 1 year'
@@ -109,12 +109,11 @@ print(len(pos_prob_list), len(neg_prob_list))
 # exit()
 
 
-image_index = [16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44]
+# image_index = [16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44]
+image_index = [20, 24, 26, 30, 40, 42]
 if patient_idx == 22:
     image_index = [18, 20, 22, 24, 26, 28, 29, 30, 31, 32, 34, 36, 38, 40, 42]
     # image_index = [i-1 for i in image_index]
-
-image_index = [26, 30,]
 
 original_img = []
 
@@ -129,31 +128,31 @@ for i in image_index:
     # gradcam_3d_img_path = test_cam_3d_dir + f'/test_cam_{i}.jpg'
     # gradcam_3d_img.append(cv2.imread(gradcam_3d_img_path))
 
-num_frames = 1
+num_frames = 2
 # plot
-fig, axs = plt.subplots(num_frames, 2, figsize=(80/3, 9))
+fig, axs = plt.subplots(3, num_frames, figsize=(8, 10))
 if patient_idx == 8490:
-    for i in range(2):
-        axs[i].imshow(original_img[i])
-        axs[i].axis('off')
-        axs[i].set_title(f'Slice {image_index[i]}, (probability: {predict_logit_8490_diabete[image_index[i]]:.2f})', fontsize=30)
-        # axs[i].imshow(original_img[i+num_frames])
-        # axs[i].axis('off')
-        # axs[i].set_title(f'Slice {image_index[i+num_frames]}, (probability: {predict_logit_8490_diabete[image_index[i]]:.2f})', fontsize=20)
-        # axs[i].imshow(original_img[i+2*num_frames])
-        # axs[i].axis('off')
-        # axs[i].set_title(f'Slice {image_index[i+2*num_frames]}, (probability: {predict_logit_8490_diabete[image_index[i]]:.2f})', fontsize=20)
+    for i in range(num_frames):
+        axs[0, i].imshow(original_img[i])
+        axs[0, i].axis('off')
+        axs[0, i].set_title(f'Slice {image_index[i]}, (probability: {predict_logit_8490_diabete[image_index[i]]:.2f})', fontsize=20)
+        axs[1, i].imshow(original_img[i+num_frames])
+        axs[1, i].axis('off')
+        axs[1, i].set_title(f'Slice {image_index[i+num_frames]}, (probability: {predict_logit_8490_diabete[image_index[i+num_frames]]:.2f})', fontsize=20)
+        axs[2, i].imshow(original_img[i+2*num_frames])
+        axs[2, i].axis('off')
+        axs[2, i].set_title(f'Slice {image_index[i+2*num_frames]}, (probability: {predict_logit_8490_diabete[image_index[i+2*num_frames]]:.2f})', fontsize=20)
 else:
-    for i in range(2):
-        axs[i].imshow(original_img[i])
-        axs[i].axis('off')
-        axs[i].set_title(f'Slice {image_index[i]}, (probability: {pos_prob_list[patient_idx][image_index[i]]:.2f})', fontsize=30)
-        # axs[i].imshow(original_img[i])
-        # axs[i].axis('off')
-        # axs[i].set_title(f'Slice {image_index[i+num_frames]}, (probability: {pos_prob_list[patient_idx][image_index[i]]:.2f})', fontsize=20)
-        # axs[i].imshow(original_img[i])
-        # axs[i].axis('off')
-        # axs[i].set_title(f'Slice {image_index[i+2*num_frames]}, (probability: {pos_prob_list[patient_idx][image_index[i]]:.2f})', fontsize=20)
+    for i in range(num_frames):
+        axs[0, i].imshow(original_img[i])
+        axs[0, i].axis('off')
+        axs[0, i].set_title(f'Slice {image_index[i]}, (probability: {pos_prob_list[patient_idx][image_index[i]]:.2f})', fontsize=20)
+        axs[1, i].imshow(original_img[i+num_frames])
+        axs[1, i].axis('off')
+        axs[1, i].set_title(f'Slice {image_index[i+num_frames]}, (probability: {pos_prob_list[patient_idx][image_index[i+num_frames]]:.2f})', fontsize=20)
+        axs[2, i].imshow(original_img[i+2*num_frames])
+        axs[2, i].axis('off')
+        axs[2, i].set_title(f'Slice {image_index[i+2*num_frames]}, (probability: {pos_prob_list[patient_idx][image_index[i+2*num_frames]]:.2f})', fontsize=20)
 
 add_patch = True
 if add_patch:
@@ -171,26 +170,19 @@ if add_patch:
         # Add the patch to the Axes
         axs[1, 3].add_patch(rect)
     elif patient_idx == 849:
-        rect = patches.Rectangle((180, 100), 80, 60, linewidth=1, edgecolor='r', facecolor='none')
-        axs[0, 2].add_patch(rect)
-        rect = patches.Rectangle((170, 100), 80, 60, linewidth=1, edgecolor='r', facecolor='none')
-        axs[0, 4].add_patch(rect)
-        rect = patches.Rectangle((290, 120), 80, 60, linewidth=1, edgecolor='r', facecolor='none')
+        linewidth = 2.5
+        rect = patches.Rectangle((180, 100), 80, 60, linewidth=linewidth, edgecolor='r', facecolor='none')
+        axs[0, 0].add_patch(rect)
+        rect = patches.Rectangle((170, 100), 80, 60, linewidth=linewidth, edgecolor='r', facecolor='none')
+        axs[0, 1].add_patch(rect)
+        rect = patches.Rectangle((290, 120), 80, 60, linewidth=linewidth, edgecolor='r', facecolor='none')
         axs[1, 0].add_patch(rect)
         # rect = patches.Rectangle((140, 100), 80, 60, linewidth=1, edgecolor='blue', facecolor='none')
         # axs[1, 1].add_patch(rect)
-        rect = patches.Rectangle((130, 100), 80, 60, linewidth=1, edgecolor='r', facecolor='none')
-        axs[2, 2].add_patch(rect)
-        rect = patches.Rectangle((100, 100), 80, 60, linewidth=1, edgecolor='r', facecolor='none')
-        axs[2, 3].add_patch(rect)
-    elif patient_idx == 848:
-        linewidth = 5
-        rect = patches.Rectangle((360, 90), 120, 80, linewidth=linewidth, edgecolor='r', facecolor='none')
-        axs[0].add_patch(rect)
-        rect = patches.Rectangle((530, 90), 120, 80, linewidth=linewidth, edgecolor='r', facecolor='none')
-        axs[0].add_patch(rect)
-        rect = patches.Rectangle((360, 90), 120, 80, linewidth=linewidth, edgecolor='r', facecolor='none') 
-        axs[1].add_patch(rect)
+        rect = patches.Rectangle((130, 100), 80, 60, linewidth=linewidth, edgecolor='r', facecolor='none')
+        axs[2, 0].add_patch(rect)
+        rect = patches.Rectangle((100, 100), 80, 60, linewidth=linewidth, edgecolor='r', facecolor='none')
+        axs[2, 1].add_patch(rect)
 
 if patient_idx == 4:
     idx = 1
@@ -200,6 +192,6 @@ else:
     idx = 0
 fig.suptitle(f'{title}', fontsize=30)
 plt.tight_layout()
-plt.savefig(save_dir + f'diabete_show_slice_{patient_idx}_oneimage_row.png')
-plt.savefig(save_dir + f'diabete_show_slice_{patient_idx}_oneimage_row.pdf', dpi=300)
+plt.savefig(save_dir + f'diabete_show_slice_{patient_idx}_2x3.png')
+plt.savefig(save_dir + f'diabete_show_slice_{patient_idx}_2x3.pdf', dpi=300)
 plt.show()

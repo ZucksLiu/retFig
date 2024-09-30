@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import math
 
+from matplotlib.ticker import FuncFormatter
 from fig_settings import *
 from fig_utils import *
 from matplotlib.colors import LinearSegmentedColormap
@@ -12,6 +13,19 @@ from ext_dataset_setting import *
 from inhouse_dataset_setting import *
 from icd10_dataset_setting import *
 from retclip_laterality_setting import *
+
+def custom_formatter(x, pos):
+    # Convert to string and strip leading '0' if present
+    s = f'{x:.2f}'
+    print('s:', s)
+    if s.startswith('0'):
+        
+        return s[1:]  # Remove the leading '0'
+    return s
+
+def format_value(val):
+    # Format the value to remove the leading '0' if less than 1
+    return f"{val:.2f}".lstrip('0')
 
 PLOT_METHODS_NAME = {
     "MAE-joint 3D": "OCTCube",
@@ -24,8 +38,8 @@ PLOT_METHODS_NAME = {
 plot_col_idx = ['auroc', 'acc', 'auprc', 'bal_acc']
 plot_col = 0
 plot_name = 'auroc'
-plot_col = 2
-plot_name = 'auprc'
+# plot_col = 2
+# plot_name = 'auprc'
 
 save_file_dir = os.path.dirname(os.path.abspath(__file__))
 retclip_exp_res = os.path.join(save_file_dir, 'retClip_exp_res.csv')
@@ -68,7 +82,11 @@ for task in inhouse_grouped_dict[inhouse_setting].keys():
 # print(res_df_dict)
 # exit()
 print(ext_oph_grouped_dict)
-for task in ext_oph_grouped_dict['fewshot'].keys():
+print(ext_oph_grouped_dict['fewshot'].keys())
+sorted_keys = ['UMN', 'HCMS', 'DUKE14', 'GLAUCOMA', 'OIMHS']
+# exit()
+# for task in ext_oph_grouped_dict['fewshot'].keys():
+for task in sorted_keys:
     for key, value in ext_oph_grouped_dict['fewshot'][task].items():
         value = np.array(value)
         if key in res_df_dict:
@@ -80,20 +98,7 @@ res_df_dict[('MAE-joint', '3D')]['Maestro2 \n(AI-READI)'] = 0.6627
 
 plot_col_idx = ['recall@1', 'recall@5', 'recall@10', 'mean rank']
 plot_col = 0 if plot_name == 'auroc' else 1
-for idx, row in retclip_exp_res_df.iterrows():
-    task = row['Method']
-    task_split = task.split(' ')
-    if task_split[0] == 'MAE-joint':
-        task = (task_split[0], '3D')
-    elif task_split[0] == 'retFound':
-        task = (task_split[0].lower(), task_split[1])
-        
 
-    plot_col_used = 'OCT_to_IR ' + plot_col_idx[plot_col]
-    res_df_dict[task][plot_col_used + ' UW-Med'] = row[plot_col_used]
-    plot_col_used = 'IR_to_OCT ' + plot_col_idx[plot_col]
-    res_df_dict[task][plot_col_used + ' UW-Med'] = row[plot_col_used]
-print(res_df_dict) 
 
 for idx, row in retclip_exp_res_aireadi_df.iterrows():
     task = row['Method']
@@ -113,7 +118,39 @@ print(res_df_dict, len(res_df_dict[('MAE-joint', '3D')]))
 print(retclip_exp_res_laterality_df)
 plot_col_idx = ['Precision@1', 'Precision@3', 'Precision@5', 'Precision@10']
 plot_col = 0 if plot_name == 'auroc' else 2
+for idx, row in retclip_exp_res_laterality_aireadi_df.iterrows():
+    task = idx
+    task_split = task.split(' ')
+    if task_split[0] == 'MAE-joint':
+        task = (task_split[0], '3D')
+    elif task_split[0] == 'retFound':
+        task = (task_split[0].lower(), task_split[1])
+    
+    plot_col_used = 'OCT_to_IR ' + plot_col_idx[plot_col]
+    res_df_dict[task][plot_col_used + ' AI-READI'] = row[plot_col_used]
+    plot_col_used = 'IR_to_OCT ' + plot_col_idx[plot_col]
+    res_df_dict[task][plot_col_used + ' AI-READI'] = row[plot_col_used]
 
+
+plot_col_idx = ['recall@1', 'recall@5', 'recall@10', 'mean rank']
+plot_col = 0 if plot_name == 'auroc' else 1
+for idx, row in retclip_exp_res_df.iterrows():
+    task = row['Method']
+    task_split = task.split(' ')
+    if task_split[0] == 'MAE-joint':
+        task = (task_split[0], '3D')
+    elif task_split[0] == 'retFound':
+        task = (task_split[0].lower(), task_split[1])
+        
+
+    plot_col_used = 'OCT_to_IR ' + plot_col_idx[plot_col]
+    res_df_dict[task][plot_col_used + ' UW-Med'] = row[plot_col_used]
+    plot_col_used = 'IR_to_OCT ' + plot_col_idx[plot_col]
+    res_df_dict[task][plot_col_used + ' UW-Med'] = row[plot_col_used]
+print(res_df_dict) 
+
+plot_col_idx = ['Precision@1', 'Precision@3', 'Precision@5', 'Precision@10']
+plot_col = 0 if plot_name == 'auroc' else 2
 for idx, row in retclip_exp_res_laterality_df.iterrows():
     task = idx
     print(idx, task)
@@ -129,18 +166,6 @@ for idx, row in retclip_exp_res_laterality_df.iterrows():
     res_df_dict[task][plot_col_used + ' UW-Med'] = row[plot_col_used]
 print(res_df_dict)
 
-for idx, row in retclip_exp_res_laterality_aireadi_df.iterrows():
-    task = idx
-    task_split = task.split(' ')
-    if task_split[0] == 'MAE-joint':
-        task = (task_split[0], '3D')
-    elif task_split[0] == 'retFound':
-        task = (task_split[0].lower(), task_split[1])
-    
-    plot_col_used = 'OCT_to_IR ' + plot_col_idx[plot_col]
-    res_df_dict[task][plot_col_used + ' AI-READI'] = row[plot_col_used]
-    plot_col_used = 'IR_to_OCT ' + plot_col_idx[plot_col]
-    res_df_dict[task][plot_col_used + ' AI-READI'] = row[plot_col_used]
 
 
 # exit()
@@ -191,6 +216,7 @@ def plot_radar(df, ax, is_fill=True, is_box=False):
         #ax.set_yticks(r_ticks)
         #ax.set_yticklabels(['' for _ in r_ticks])
         y_labels = ["{:.2f}".format(round((r + 3)*y_step, 2) + y_min) for r in range(len(r_ticks))]
+        y_labels = [format_value(float(l)) for l in y_labels]
         if angle < np.pi / 2 or angle > 3 * np.pi / 2:
             label_angle = angle * 180 / np.pi
         else:
@@ -202,25 +228,25 @@ def plot_radar(df, ax, is_fill=True, is_box=False):
             cat = cat.replace('IR_to_OCT', 'IR2OCT')
             if cat.endswith('UW-Med'):
                 cat = cat.replace(' UW-Med', '\n(UW-Oph)')
-                if 'Precision' in cat:
-                    if 'IR2OCT' in cat:
-                        cat = 'i2opUW'
-                    else:
-                        cat = 'o2ipUW'
+                # if 'Precision' in cat:
+                #     if 'IR2OCT' in cat:
+                #         cat = 'i2opUW'
+                #     else:
+                #         cat = 'o2ipUW'
             if cat.endswith('AI-READI'):
                 cat = cat.replace(' AI-READI', '\n(AI-READI)')
-                if 'Precision' in cat:
-                    if 'IR2OCT' in cat:
-                        cat = 'i2opAI'
-                    else:
-                        cat = 'o2ipAI'
-        
+                # if 'Precision' in cat:
+                #     if 'IR2OCT' in cat:
+                #         cat = 'i2opAI'
+                #     else:
+                #         cat = 'o2ipAI'
+
                 
         cat = cat.replace('recall@1', '')
         cat = cat.replace('recall@5', '')
         cat = cat.replace('recall@10', '')
-        # cat = cat.replace('Precision@1', 'l')
-        # cat = cat.replace('Precision@5', 'l')
+        cat = cat.replace('Precision@1', 'l')
+        cat = cat.replace('Precision@5', 'l')
 
         if 'EGFR' in cat or 'FAT1' in cat or 'KRAS' in cat or 'LRP1B' in cat or 'TP53' in cat or 'Exon' in cat or 'L858R' in cat or 'TMB' in cat or 'biomarker' in cat:
             #c = '#4daf4a'
@@ -309,6 +335,7 @@ def plot_radar(df, ax, is_fill=True, is_box=False):
         ax.spines['polar'].set_color('gray')    
         ax.spines['polar'].set_alpha(0.5)
         ax.yaxis.get_gridlines()[-1].set_visible(False)
+    # ax.yaxis.set_major_formatter(FuncFormatter(custom_formatter))
 
     #fig.legend(loc='upper center', frameon=False, ncol=4)
 
@@ -319,6 +346,6 @@ fig.legend(loc='upper center', frameon=False, ncol=3, fontsize=25, bbox_to_ancho
 
 
 this_file_dir = os.path.dirname(os.path.abspath(__file__))
-plt.savefig(os.path.join(this_file_dir, 'save_figs', f'figure_1_radar_{plot_name}.png'))
-plt.savefig(os.path.join(this_file_dir, 'save_figs', f'figure_1_radar_{plot_name}.pdf'), format='pdf')
+plt.savefig(os.path.join(this_file_dir, 'save_figs', f'figure_1_radar_{plot_name}_new.png'))
+plt.savefig(os.path.join(this_file_dir, 'save_figs', f'figure_1_radar_{plot_name}_new.pdf'), format='pdf')
 exit()

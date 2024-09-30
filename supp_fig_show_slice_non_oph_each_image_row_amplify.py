@@ -144,8 +144,10 @@ if patient_idx == 8490:
         # axs[i].axis('off')
         # axs[i].set_title(f'Slice {image_index[i+2*num_frames]}, (probability: {predict_logit_8490_diabete[image_index[i]]:.2f})', fontsize=20)
 else:
+    if patient_idx == 848:
+        region = [(530, 90, 120, 80), (360, 90, 120, 80)]
     for i in range(2):
-        axs[i].imshow(original_img[i])
+        axs[i].imshow(original_img[i][region[i][1]:region[i][1]+region[i][3], region[i][0]:region[i][0]+region[i][2]])
         axs[i].axis('off')
         axs[i].set_title(f'Slice {image_index[i]}, (probability: {pos_prob_list[patient_idx][image_index[i]]:.2f})', fontsize=30)
         # axs[i].imshow(original_img[i])
@@ -200,6 +202,6 @@ else:
     idx = 0
 fig.suptitle(f'{title}', fontsize=30)
 plt.tight_layout()
-plt.savefig(save_dir + f'diabete_show_slice_{patient_idx}_oneimage_row.png')
-plt.savefig(save_dir + f'diabete_show_slice_{patient_idx}_oneimage_row.pdf', dpi=300)
+plt.savefig(save_dir + f'diabete_show_slice_{patient_idx}_oneimage_row_amp.png')
+plt.savefig(save_dir + f'diabete_show_slice_{patient_idx}_oneimage_row_amp.pdf', dpi=300)
 plt.show()

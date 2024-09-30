@@ -10,7 +10,10 @@ from matplotlib.legend_handler import HandlerTuple
 import matplotlib as mpl
 import matplotlib.lines as mlines
 import json
+from matplotlib import rc
 
+# Enable LaTeX rendering
+# rc('text', usetex=True)
 # import torch
 
 
@@ -85,7 +88,7 @@ for i in image_index:
 num_frames = 7
 # plot
 fig, axs = plt.subplots(4, num_frames, figsize=(16, 9))
-axs[0, 0].set_ylabel('IR en face image', fontsize=18)
+axs[0, 0].set_ylabel('IR ' + r'$\it{en \ face}$' + ' image', fontsize=18)
 axs[1, 0].set_ylabel('OCT slice', fontsize=18)
 axs[2, 0].set_ylabel('Saliency map\n (RETFound)', fontsize=18)
 axs[3, 0].set_ylabel('Saliency map\n (OCTCube)', fontsize=18)

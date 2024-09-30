@@ -114,7 +114,7 @@ if patient_idx == 22:
     image_index = [18, 20, 22, 24, 26, 28, 29, 30, 31, 32, 34, 36, 38, 40, 42]
     # image_index = [i-1 for i in image_index]
 
-image_index = [26, 30,]
+image_index = [30, 34]
 
 original_img = []
 
@@ -131,10 +131,12 @@ for i in image_index:
 
 num_frames = 1
 # plot
+
 fig, axs = plt.subplots(num_frames, 2, figsize=(80/3, 9))
 if patient_idx == 8490:
+    region = [(260, 90, 140, 80), (260, 90, 140, 80)]
     for i in range(2):
-        axs[i].imshow(original_img[i])
+        axs[i].imshow(original_img[i][region[i][1]:region[i][1]+region[i][3], region[i][0]:region[i][0]+region[i][2]])
         axs[i].axis('off')
         axs[i].set_title(f'Slice {image_index[i]}, (probability: {predict_logit_8490_diabete[image_index[i]]:.2f})', fontsize=30)
         # axs[i].imshow(original_img[i+num_frames])
@@ -144,6 +146,7 @@ if patient_idx == 8490:
         # axs[i].axis('off')
         # axs[i].set_title(f'Slice {image_index[i+2*num_frames]}, (probability: {predict_logit_8490_diabete[image_index[i]]:.2f})', fontsize=20)
 else:
+    region = [(350, 160, 80, 60), (310, 200, 80, 60)]
     for i in range(2):
         axs[i].imshow(original_img[i])
         axs[i].axis('off')
@@ -183,13 +186,12 @@ if add_patch:
         axs[2, 2].add_patch(rect)
         rect = patches.Rectangle((100, 100), 80, 60, linewidth=1, edgecolor='r', facecolor='none')
         axs[2, 3].add_patch(rect)
-    elif patient_idx == 848:
+    elif patient_idx == 8490:
         linewidth = 5
-        rect = patches.Rectangle((360, 90), 120, 80, linewidth=linewidth, edgecolor='r', facecolor='none')
+
+        rect = patches.Rectangle((260, 90), 140, 80, linewidth=linewidth, edgecolor='r', facecolor='none')
         axs[0].add_patch(rect)
-        rect = patches.Rectangle((530, 90), 120, 80, linewidth=linewidth, edgecolor='r', facecolor='none')
-        axs[0].add_patch(rect)
-        rect = patches.Rectangle((360, 90), 120, 80, linewidth=linewidth, edgecolor='r', facecolor='none') 
+        rect = patches.Rectangle((260, 90), 140, 80, linewidth=linewidth, edgecolor='r', facecolor='none') 
         axs[1].add_patch(rect)
 
 if patient_idx == 4:
@@ -200,6 +202,6 @@ else:
     idx = 0
 fig.suptitle(f'{title}', fontsize=30)
 plt.tight_layout()
-plt.savefig(save_dir + f'diabete_show_slice_{patient_idx}_oneimage_row.png')
-plt.savefig(save_dir + f'diabete_show_slice_{patient_idx}_oneimage_row.pdf', dpi=300)
+plt.savefig(save_dir + f'diabete_show_slice_{patient_idx}_oneimage_row_h_amp.png')
+plt.savefig(save_dir + f'diabete_show_slice_{patient_idx}_oneimage_row_h_amp.pdf', dpi=300)
 plt.show()
