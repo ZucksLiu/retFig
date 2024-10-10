@@ -51,6 +51,33 @@ ABL_COLORS = {
     'GigaPath (Dinov2) enc w. ABMIL': '#f0027f',
 }
 
+COLORS_GA_prog_compute = {
+    "OCTCube-COEP-3mod": "#0E3E87",
+    "OCTCube-COEP-smOCT": "#80BFC9",
+    "OCTCube-3mod": "#346CAC",
+    "OCTCube-smOCT": "#D9EAEA",
+    "FAF-DenseNet": "#F7E474",
+    "OCT-DenseNet3D": "#D8B258",
+    "RETFound-3mod": "#5E9AA9",
+    "RETFound-smOCT": "#E9D8A6",
+
+    # "MAE2D 3D": "#DEEAEA", 
+}
+COLORS_GA_prog_compute = {
+    "OCTCube-COEP-3mod": "#0E3E87",
+    "OCTCube-COEP-smOCT": "#346CAC",
+    "OCTCube-3mod": "#5E9AA9",
+    "OCTCube-smOCT": "#80BFC9",
+    "FAF-DenseNet": "#D9EAEA",
+    "OCT-DenseNet3D": "#E9D8A6",
+    "RETFound-3mod": "#F7E474",
+    "RETFound-smOCT": "#D8B258",
+   #F7E474 
+    # # New colors
+    # "New-Medium-Teal": "",
+    # "New-Warm-Beige": "",
+}
+
 COLORS_AIREADI_compute = {
     "MAE-joint finetune": "#0E3E87",
     "MAE-joint lock_part": "#80BFC9",

@@ -1,0 +1,9 @@
+Method,Lampa holdout,Proxima B
+OCTCube-COEP-3mod,0.354,0.567
+OCTCube-COEP-smOCT,0.34,0.557
+OCTCube-3mod,0.32,0.52
+OCTCube-smOCT,0.31,0.51
+FAF-DenseNet,0.07,0.09
+OCT-DenseNet3D,0.19,0.24
+RETFound-3mod,0.153,0.2
+RETFound-smOCT,0.033,0.157
