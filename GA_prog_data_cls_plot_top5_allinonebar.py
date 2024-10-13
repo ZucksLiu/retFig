@@ -25,15 +25,26 @@ GA_prog_GAGrowth_std_res_df = pd.read_csv(GA_prog_GAGrowth_std_res)
 print(GA_prog_BCVA_mean_res_df)
 print(GA_prog_GAGrowth_mean_res_df)
 
+# PLOT_METHODS_NAME = {
+#     'OCTCube-COEP-3mod': "OCTCube-COEP-3mod",
+#     'OCTCube-COEP-smOCT': "OCTCube-COEP-smOCT",
+#     'OCTCube-3mod': "OCTCube-3mod",
+#     'OCTCube-smOCT': "OCTCube-smOCT",
+#     'FAF-DenseNet': "DenseNet-smFAF",
+#     'OCT-DenseNet3D': "3DDenseNet-smOCT",
+#     'RETFound-3mod': "RETFound-3mod",
+#     'RETFound-smOCT': "RETFound-smOCT",
+# }
+
 PLOT_METHODS_NAME = {
-    'OCTCube-COEP-3mod': "OCTCube-COEP-3mod",
+    'OCTCube-COEP-3mod': "OCTCube (3 modal)",
     'OCTCube-COEP-smOCT': "OCTCube-COEP-smOCT",
     'OCTCube-3mod': "OCTCube-3mod",
-    'OCTCube-smOCT': "OCTCube-smOCT",
-    'FAF-DenseNet': "DenseNet-smFAF",
-    'OCT-DenseNet3D': "3DDenseNet-smOCT",
+    'OCTCube-smOCT': "OCTCube",
+    'FAF-DenseNet': "DenseNet (FAF)",
+    'OCT-DenseNet3D': "DenseNet (OCT)",
     'RETFound-3mod': "RETFound-3mod",
-    'RETFound-smOCT': "RETFound-smOCT",
+    'RETFound-smOCT': "RETFound",
 }
 GAGrowth_Ours_CNN_pval = {'Lampa holdout': 0.00043, 'Proxima B': 0.00198}
 GAGrowth_Ours_CNN_method_name = {'Lampa holdout': 'OCTCube-COEP-3mod', 'Proxima B': 'FAF-DenseNet'}
@@ -43,6 +54,16 @@ metric_mapping = {
     'GAGrowth': [GAGrowth_Ours_CNN_pval, GAGrowth_Ours_CNN_method_name], 
     'BCVA': [BCVA_Ours_CNN_pval, BCVA_Ours_CNN_method_name]
     }
+
+OURS_METHOD_NANE = 'OCTCube-COEP-3mod'
+GAGrowth_compare_method_name = ['OCTCube-smOCT', 'FAF-DenseNet']
+GAGrowth_compare_pval = {'Lampa holdout': [0.00005, 0.00043], 'Proxima B': [0.00025, 0.00198]}
+BCVA_compare_method_name = ['OCTCube-smOCT', 'OCT-DenseNet3D']
+BCVA_compare_pval = {'Lampa holdout': [7.28e-4, 1.43e-8], 'Proxima B': [0.09, 2.07e-9]}
+compare_method_metric_mapping = {
+    'GAGrowth': [GAGrowth_compare_pval, GAGrowth_compare_method_name], 
+    'BCVA': [BCVA_compare_pval, BCVA_compare_method_name]
+}
 metric_name_mapping = {'GAGrowth': 'GA growth rate', 'BCVA': 'Baseline BCVA'}
 
 # prefix_mapping = {'OCT_to_IR': 'OCT_to_IR', 'IR_to_OCT': 'IR_to_OCT'}
@@ -62,10 +83,13 @@ def plot_retclip_recall_and_mean_rank_metric_inonebar(axes, dataset_exp_res_df, 
     cohort_list = dataset_exp_res_df.columns.tolist()
     cohort_list.remove('Method')
     print(cohort_list)
-    pval_dict, pval_method_name_dict = metric_mapping[metric_name]
-    pval_list = [pval_dict[cohort] for cohort in cohort_list]
-    pval_method_idx = [plot_method.index(pval_method_name_dict[cohort]) for cohort in cohort_list]
-    print(pval_dict, pval_method_idx)
+    # pval_dict, pval_method_name_dict = metric_mapping[metric_name]
+    pval_dict, pval_method_name_dict = compare_method_metric_mapping[metric_name]
+    print(pval_dict, pval_method_name_dict)
+    # exit()
+    # pval_list = [pval_dict[cohort] for cohort in cohort_list]
+    # pval_method_idx = [plot_method.index(pval_method_name_dict[cohort]) for cohort in cohort_list]
+    # print(pval_dict, pval_method_idx)
     # exit()
     all_handles = []
     all_labels = []
@@ -130,26 +154,32 @@ def plot_retclip_recall_and_mean_rank_metric_inonebar(axes, dataset_exp_res_df, 
         #     y_l = [y[1] + np.random.normal(0, 0.01) for _ in range(5)]
         # # print(y_h, y_l)
         # t_stat, p_value = ttest_ind(y_h , y_l)
+        pval_list = pval_dict[cohort]
+        pval_method = pval_method_name_dict
+        delta_list = [0.04, 0.005]
+        for p_idx, p_value in enumerate(pval_list):
+            # p_value = pval_list[i]
+            stars = get_star_from_pvalue(p_value, star=True)
+            print('stars:', stars, p_value)
+            pval_method_name = pval_method[p_idx]
+            pval_method_idx = plot_method.index(pval_method_name)
+            y_h_val = y[0]
+            y_l_val = y[pval_method_idx]    
+            y_std_err_h = std_list[0]
+            y_std_err_l = std_list[pval_method_idx]
 
-        p_value = pval_list[i]
-        stars = get_star_from_pvalue(p_value, star=True)
-        print('stars:', stars, p_value)
-        # print(f'{key_in_results_dict[i]}: {p_value}', stars, y_h, y_l, len(stars))
-        compare_idx = pval_method_idx[1]
-        y_l_val = y[compare_idx]
-        y_h_val = y[pval_method_idx[0]]
-        print(pval_method_idx, y_h_val, y_l_val)
-        delta_y = 0.02
-        line_y = y_h_val + y_std_err + 2 * delta_y
+            print(pval_method_idx, y_h_val, y_l_val)
+            delta_y = delta_list[p_idx]
+            line_y = y_h_val + y_std_err_h + 2 * delta_y
 
-        x1 = width * (i * (len(plot_method) + 1) + 1)
-        x2 = width * (i * (len(plot_method) + 1) + (compare_idx + 1))
+            x1 = width * (i * (len(plot_method) + 1) + 1)
+            x2 = width * (i * (len(plot_method) + 1) + (pval_method_idx + 1))
         
-        if np.mean(y_h_val) > np.mean(y_l_val) and len(stars) > 0:
-            ax.plot([x1, x1], [y_h_val + std_list[pval_method_idx[0]] + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
-            ax.plot([x2, x2], [y_l_val + std_list[pval_method_idx[1]] + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
-            ax.plot([x1, x2], [line_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
-            ax.text((x1 + x2)/2, line_y, stars, fontsize=25, ha='center', va='bottom', )
+            if np.mean(y_h_val) > np.mean(y_l_val) and len(stars) > 0:
+                # ax.plot([x1, x1], [y_h_val + y_std_err_h + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
+                # ax.plot([x2, x2], [y_l_val + y_std_err_l + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
+                ax.plot([x1, x2], [line_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
+                ax.text((x1 + x2)/2, line_y, stars, fontsize=25, ha='center')#, va='bottom', )
         if i == 0 and print_ylabels:
             ax.set_ylabel(f'{metric_name_mapping[metric_name]} ($R^2)$', fontsize=25)
 
@@ -164,7 +194,7 @@ def plot_retclip_recall_and_mean_rank_metric_inonebar(axes, dataset_exp_res_df, 
     ax.tick_params(axis='x', which='major', labelsize=25)
     
     y_max = np.max(y)
-    y_max = max(0.645, y_max)
+    y_max = max(0.67, y_max)
     y_min = np.min(y)
     y_min = min(0.1, y_min)
     print('y_max', y_max, 'y_min', y_min)
@@ -194,7 +224,7 @@ def plot_retclip_recall_and_mean_rank_metric_inonebar(axes, dataset_exp_res_df, 
 
 
 
-def plot_retclip_exp_res(fig, ax, dataset_exp_res_df, dataset_exp_res_std_df, plot_method=None, color_selection=None):
+def plot_retclip_exp_res(fig, ax, dataset_exp_res_df, dataset_exp_res_std_df, plot_method=None, color_selection=None, legend_ncol=5, bbox_adjust_ratio=0.85):
     # fig, ax = plt.subplots(figsize=(1.*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=4)
     # first_row_prefix = 'OCT_to_IR'
     # second_row_prefix = 'IR_to_OCT'
@@ -207,9 +237,9 @@ def plot_retclip_exp_res(fig, ax, dataset_exp_res_df, dataset_exp_res_std_df, pl
     # col_name = 'recall@5'
     # col_name = col_name_list[1]
     plot_retclip_recall_and_mean_rank_metric_inonebar(ax[1], dataset_exp_res_df[1], dataset_exp_res_std_df[1], 'GAGrowth', print_xlabels=False, print_ylabels=True, plot_method=plot_method, color_selection=color_selection)
-    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.012), ncol=3, fontsize=20, frameon=False)
+    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.012), ncol=legend_ncol, fontsize=20, frameon=False)
     # fig.tight_layout(rect=[0, 0.02, 1, 0.95])
-    fig.tight_layout(rect=[0, -0.02, 1, 0.85])
+    fig.tight_layout(rect=[0, -0.02, 1, bbox_adjust_ratio])
     # fig.suptitle('UW-Medicine', fontsize=15, y=0.04)
     return fig, ax, all_handles, all_labels
 
@@ -222,7 +252,7 @@ dataset_exp_res_std_df = [GA_prog_BCVA_std_res_df, GA_prog_GAGrowth_std_res_df]
 plot_methods_used = ['OCTCube-COEP-3mod', 'OCTCube-smOCT', 'FAF-DenseNet', 'OCT-DenseNet3D', 'RETFound-smOCT']
 color_selection = [COLORS_GA_prog_compute[m] for m in plot_methods_used]
 fig, axes = plt.subplots(figsize=(2.5*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=1, ncols=2)
-plot_retclip_exp_res(fig, axes, dataset_exp_res_df=dataset_exp_res_df, dataset_exp_res_std_df=dataset_exp_res_std_df, plot_method=plot_methods_used, color_selection=color_selection)
+plot_retclip_exp_res(fig, axes, dataset_exp_res_df=dataset_exp_res_df, dataset_exp_res_std_df=dataset_exp_res_std_df, plot_method=plot_methods_used, color_selection=color_selection, bbox_adjust_ratio=0.9)
 fig.savefig(os.path.join(save_file_dir, 'save_figs', 'GA_prog_BCVA_mean_res_ci_together_combine_metric_inonebar_5.png'))
 fig.savefig(os.path.join(save_file_dir, 'save_figs', 'GA_prog_BCVA_mean_res_ci_together_combine_metric_inonebar_5.pdf'), dpi=300)
 
