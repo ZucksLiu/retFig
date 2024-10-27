@@ -51,6 +51,22 @@ ABL_COLORS = {
     'GigaPath (Dinov2) enc w. ABMIL': '#f0027f',
 }
 
+COLORS_SLIVIT_CROSSMODAL_compute = {
+    "OCTCube-SLIViT": "#0E3E87",
+    "OCTCube": "#0E3E87",
+    "ConvNext-SLIViT": "#F7E474",
+    # "OCTCube-COEP-smOCT": "#80BFC9",
+    # "OCTCube-3mod": "#346CAC",
+    # "OCTCube-smOCT": "#D9EAEA",
+    # "FAF-DenseNet": "#F7E474",
+    # "OCT-DenseNet3D": "#D8B258",
+    # "RETFound-3mod": "#5E9AA9",
+    "RETFound": "#E9D8A6",
+
+    # "MAE2D 3D": "#DEEAEA", 
+}
+
+
 COLORS_GA_prog_compute = {
     "OCTCube-COEP-3mod": "#0E3E87",
     "OCTCube-COEP-smOCT": "#80BFC9",
