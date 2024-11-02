@@ -177,7 +177,7 @@ COLORS = {
     "from_scratch 2D": "#D8B258",
 
     "MAE2D 3D": "#F7E474",
-
+    "slivit 3D": "#D9EAEA",
     # "MAE-joint": "#0E3E87",
     # "MAE-joint 3D": "#0E3E87",
     # "retFound 3D": "#346CAC",

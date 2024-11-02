@@ -52,7 +52,7 @@ PLOT_X_LABELS = {
 PLOT_METHODS_NAME = {
     'OCTCube-SLIViT': "OCTCube",
     "OCTCube": "OCTCube",
-    "ConvNext-SLIViT": "ConvNext-SLIViT",
+    "ConvNext-SLIViT": "SLIViT",
     "RETFound": "RETFound",
 }
 
