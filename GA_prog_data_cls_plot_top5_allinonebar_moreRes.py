@@ -36,7 +36,7 @@ print(GA_prog_GAGrowth_mean_res_df)
 #     'RETFound-smOCT': "RETFound-smOCT",
 # }
 PLOT_X_LABELS = {
-    'Lampa holdout': 'Lampa',
+    'Lampa holdout': r'Lampa',
     'Proxima B': 'Proxima B',
     'GAllego': 'GAllego',
     'Mahalo': 'Mahalo',
@@ -245,10 +245,10 @@ def plot_retclip_exp_res(fig, ax, dataset_exp_res_df, dataset_exp_res_std_df, pl
 
     # col_name = 'recall@1'
     # col_name = col_name_list[0]
-    all_handles, all_labels = plot_retclip_recall_and_mean_rank_metric_inonebar(ax[0], dataset_exp_res_df[0], dataset_exp_res_std_df[0], 'BCVA', print_ylabels=True, plot_method=plot_method, color_selection=color_selection)
+    all_handles, all_labels = plot_retclip_recall_and_mean_rank_metric_inonebar(ax[0], dataset_exp_res_df[0], dataset_exp_res_std_df[0], 'GAGrowth', print_ylabels=True, plot_method=plot_method, color_selection=color_selection)
     # col_name = 'recall@5'
     # col_name = col_name_list[1]
-    plot_retclip_recall_and_mean_rank_metric_inonebar(ax[1], dataset_exp_res_df[1], dataset_exp_res_std_df[1], 'GAGrowth', print_xlabels=False, print_ylabels=True, plot_method=plot_method, color_selection=color_selection)
+    plot_retclip_recall_and_mean_rank_metric_inonebar(ax[1], dataset_exp_res_df[1], dataset_exp_res_std_df[1], 'BCVA', print_xlabels=False, print_ylabels=True, plot_method=plot_method, color_selection=color_selection)
     fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.012), ncol=legend_ncol, fontsize=20, frameon=False)
     # fig.tight_layout(rect=[0, 0.02, 1, 0.95])
     fig.tight_layout(rect=[0, -0.02, 1, bbox_adjust_ratio])
@@ -257,8 +257,8 @@ def plot_retclip_exp_res(fig, ax, dataset_exp_res_df, dataset_exp_res_std_df, pl
 
 
 
-dataset_exp_res_df = [GA_prog_BCVA_mean_res_df, GA_prog_GAGrowth_mean_res_df]
-dataset_exp_res_std_df = [GA_prog_BCVA_std_res_df, GA_prog_GAGrowth_std_res_df]
+dataset_exp_res_df = [GA_prog_GAGrowth_mean_res_df, GA_prog_BCVA_mean_res_df]
+dataset_exp_res_std_df = [GA_prog_GAGrowth_std_res_df, GA_prog_BCVA_std_res_df]
 # fig, axes = plt.subplots(figsize=(0.9*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=1)
 
 plot_methods_used = ['OCTCube-COEP-3mod', 'OCTCube-smOCT', 'FAF-DenseNet', 'OCT-DenseNet3D', 'RETFound-smOCT']

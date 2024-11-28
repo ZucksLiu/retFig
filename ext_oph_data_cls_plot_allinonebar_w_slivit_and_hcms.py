@@ -332,7 +332,7 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
     ax.set_ylim(floor_to_nearest(y_min, 0.004), y_max)
     print('y_max:', y_max)
     if plot_col == 'auprc':
-        ax.set_yticks([0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
+        ax.set_yticks([0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1])
     ax.set_xticks(xticks_list)
     ax.set_xticklabels(xticks_label, fontsize=16)
     ax.set_xlim(0.05, max_width + width)
@@ -396,7 +396,6 @@ if __name__ == '__main__':
         'DUKE14': 'fewshot',
         'GLAUCOMA': 'fewshot',
         'UMN': 'fewshot',
-
         'HCMS': 'default',
         'OIMHS': 'fewshot',
     }
