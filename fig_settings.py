@@ -65,6 +65,20 @@ COLORS_SLIVIT_CROSSMODAL_compute = {
 
     # "MAE2D 3D": "#DEEAEA", 
 }
+COLORS_SLIVIT_CROSSMODAL_compute = {
+    "OCTCube-SLIViT": "#0E3E87",
+    "OCTCube": "#0E3E87",
+    "ConvNext-SLIViT": "#D9EAEA",
+    # "OCTCube-COEP-smOCT": "#80BFC9",
+    # "OCTCube-3mod": "#346CAC",
+    # "OCTCube-smOCT": "#D9EAEA",
+    # "FAF-DenseNet": "#F7E474",
+    # "OCT-DenseNet3D": "#D8B258",
+    # "RETFound-3mod": "#5E9AA9",
+    "RETFound": "#346CAC",
+
+    # "MAE2D 3D": "#DEEAEA", 
+}
 
 
 COLORS_GA_prog_compute = {

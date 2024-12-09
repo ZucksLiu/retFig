@@ -8,14 +8,501 @@ from fig_settings import *
 from fig_utils import *
 
 from scipy.stats import ttest_rel, ttest_ind
-# this_file_dir = 
 
-home_dir = os.path.expanduser("~")
-if 'wxdeng' in home_dir:
-    this_file_dir = '/home/wxdeng/oph/retfound_baseline/'
-else:
-    this_file_dir = '/home/zucksliu/retfound_baseline/'
+
+this_file_dir = '/home/zucksliu/retfound_baseline/'
 save_file_dir = os.path.dirname(os.path.abspath(__file__))
+crossmodal_results_dir = os.path.join(save_file_dir, 'CrossModal-results-20241027')
+
+CROSSMODAL_EXPR_NAME = {
+    'CT3D': (['OCTCube',  'RETFound', 'ConvNext-SLIViT'], ['AUC', 'AUCPR']),
+    'EF': (['OCTCube-SLIViT', 'RETFound', 'ConvNext-SLIViT'], ['R2']),
+    'EF_b': (['OCTCube', 'RETFound', 'ConvNext-SLIViT'], ['AUC', 'AUCPR']),
+}
+all_plot_metrics = sorted(set([metric for method_list, metric_list in CROSSMODAL_EXPR_NAME.values() for metric in metric_list]))
+all_plot_metrics = ['AUCPR', 'AUC', 'R2']
+print('All metric that will be plot:', all_plot_metrics)
+
+
+def load_expr_results(crossmodal_results_dir, expr_name):
+    expr_results = {}
+    method_list, metric_list = CROSSMODAL_EXPR_NAME[expr_name]
+    for method in method_list:
+        df = pd.read_csv(os.path.join(crossmodal_results_dir, f'{expr_name}/{method}.csv'))
+        expr_results[method] = df
+    return expr_results
+print('load_expr_results')
+CT3D_results = load_expr_results(crossmodal_results_dir, 'CT3D')
+EF_results = load_expr_results(crossmodal_results_dir, 'EF')
+EF_b_results = load_expr_results(crossmodal_results_dir, 'EF_b')
+print(CT3D_results)
+print(EF_results)
+print(EF_b_results)
+plot_dict = {
+    'CT3D': CT3D_results,
+    'EF': EF_results,
+    'EF_b': EF_b_results,
+}
+
+PLOT_X_LABELS = {
+    'CT3D': 'CT (3D)',
+    'EF': 'US EF (2D+T)',
+    'EF_b': 'US EF_b (2D+T)',
+}
+PLOT_METHODS_NAME = {
+    'OCTCube-SLIViT': "OCTCube",
+    "OCTCube": "OCTCube",
+    "RETFound": "RETFound",
+    "ConvNext-SLIViT": "SLIViT",
+
+}
+
+PLOT_METRIC_NAME = {
+    'AUC': 'AUROC',
+    'AUCPR': 'AUPRC',
+    'R2': r'$R^2$',
+}
+
+
+def organize_expr_by_metric(plot_dict, metric_name):
+    '''
+    Organize the plot_dict by metric_name,
+    Example:
+            metric_name = 'AUC'
+            auc_plot_dict = organize_expr_by_metric(plot_dict, metric_name)
+            print(auc_plot_dict)
+    '''
+    organized_dict = {}
+    for expr_name, expr_results in plot_dict.items():
+        
+        for method, df in expr_results.items():
+            print(method, df)
+            if metric_name not in df.columns:
+                continue
+            else:
+                if expr_name not in organized_dict:
+                    organized_dict[expr_name] = {}
+            organized_dict[expr_name][method] = df[metric_name].tolist()
+    return organized_dict
+
+bymetric_plot_dict = {}
+for metric_name in all_plot_metrics:
+    bymetric_plot_dict[metric_name] = organize_expr_by_metric(plot_dict, metric_name)
+    print(bymetric_plot_dict[metric_name])
+
+    
+# Boxplot function
+def plot_slivit_crossmodal_boxplot(axes, dataset_exp_res_df, metric_name, color_selection=None):
+    """
+    Generate a boxplot for crossmodal metrics.
+
+    Parameters:
+    - axes: Matplotlib Axes object for the plot.
+    - dataset_exp_res_df: Dictionary of results by task and method.
+    - metric_name: Name of the metric (e.g., 'AUC', 'AUCPR').
+    """
+    plot_data = []
+    for task, task_data in dataset_exp_res_df.items():
+        for method, scores in task_data.items():
+            for score in scores:
+                plot_data.append({
+                    "Task": task,
+                    "Method": PLOT_METHODS_NAME[method],
+                    "Score": score,
+                })
+
+    # Updated color palette using the desired colors
+    if color_selection is None:
+        color_selection = [COLORS_SLIVIT_CROSSMODAL_compute[m] for m in dataset_exp_res_df[task].keys()]
+
+    plot_df = pd.DataFrame(plot_data)
+    print('plot_df:', plot_df)
+    exit()
+    sns.boxplot(
+        data=plot_df,
+        x="Task",
+        y="Score",
+        hue="Method",
+        ax=axes,
+        palette=color_selection,
+        showfliers=False,  # Hide outliers
+        linewidth=1.5,
+    )
+    # Optionally overlay swarmplot
+    sns.swarmplot(
+        data=plot_df,
+        x="Task",
+        y="Score",
+        hue="Method",
+        dodge=True,
+        ax=axes,
+        alpha=0.6,
+        palette=color_selection,
+    )
+    # Significance annotations (optional)
+    for i, task in enumerate(plot_df["Task"].unique()):
+        task_data = plot_df[plot_df["Task"] == task]
+        methods = task_data["Method"].unique()
+        if len(methods) > 1:
+            y_vals = [task_data[task_data["Method"] == method]["Score"] for method in methods]
+            t_stat, p_value = ttest_rel(y_vals[0], y_vals[1])  # Example: Pairwise t-test
+            if p_value < 0.05:
+                axes.text(
+                    i,
+                    max(y_vals[0].max(), y_vals[1].max()) + 0.02,
+                    "*",
+                    fontsize=16,
+                    ha="center",
+                )
+
+    axes.set_ylabel(PLOT_METRIC_NAME[metric_name], fontsize=20)
+    axes.tick_params(axis='x', labelsize=15)
+    axes.tick_params(axis='y', labelsize=15)
+    sns.despine(ax=axes)
+    print(metric_name)
+    # exit()
+    # Set y-axis limits and ticks based on metric_name
+    if metric_name in ['AUC', 'AUCPR']:
+        if metric_name == 'AUC':
+            axes.set_ylim(0.8, 0.95)
+        elif metric_name == 'AUCPR':
+            axes.set_ylim(0.8, 0.91)
+            axes.set_yticks([0.7, 0.8, 0.9])
+        # axes.set_yticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+    elif metric_name == 'R2':
+        axes.set_ylim(0.4, 0.81)
+        axes.set_yticks([0.4, 0.5, 0.6, 0.7, 0.8])
+
+    # Remove x-axis label
+    axes.set_xlabel("")
+    # Remove legend
+    axes.get_legend().remove()
+    sns.despine(ax=axes, top=True, right=True)  # Remove top and right spines
+
+# Main function
+def plot_slivit_crossmodal_exp_res(fig, axes, dataset_exp_res_df):
+    for i, metric in enumerate(dataset_exp_res_df.keys()):
+        plot_slivit_crossmodal_boxplot(axes[i], dataset_exp_res_df[metric], metric)
+    fig.tight_layout()
+
+# Prepare data and call the function
+dataset_exp_res_df = {
+    metric: organize_expr_by_metric(plot_dict, metric)
+    for metric in PLOT_METRIC_NAME.keys()
+}
+fig, axes = plt.subplots(figsize=(1.5 * 8, 0.7 * 8), nrows=1, ncols=3, gridspec_kw={'width_ratios': [2, 2, 1]})
+plot_slivit_crossmodal_exp_res(fig, axes, dataset_exp_res_df)
+
+# Save the figure
+fig.savefig(os.path.join(save_file_dir, 'save_figs', 'SLIViT_crossmodal_boxplot.png'), dpi=300)
+fig.savefig(os.path.join(save_file_dir, 'save_figs', 'SLIViT_crossmodal_boxplot.pdf'), dpi=300)
+
+
+exit()
+
+def plot_slivit_crossmodal_metric_inonebar(axes, dataset_exp_res_df, metric_name, plot_task=None, plot_method=None, color_selection=None, reverse_plot=False, err_bar=True, print_xlabels=False, print_ylabels=True):
+    if plot_task is None:
+        plot_task = list(dataset_exp_res_df.keys())
+    print('plot_task:', plot_task)
+    
+    if plot_method is None:
+        plot_method = list(dataset_exp_res_df[plot_task[0]])
+    print('plot_method:', plot_method)
+    # exit()
+    if color_selection is None:
+        color_mapping = [COLORS_SLIVIT_CROSSMODAL_compute[m] for m in plot_method]
+    else:
+        color_mapping = color_selection
+
+    print('color_mapping:', color_mapping)
+
+    # cohort_list = dataset_exp_res_df.columns.tolist()
+    # cohort_list.remove('Method')
+    # print(cohort_list)
+    # pval_dict, pval_method_name_dict = metric_mapping[metric_name]
+    plot_metric_name = PLOT_METRIC_NAME[metric_name]
+    print('plot_metric_name:', plot_metric_name)
+
+    # print(pval_dict, pval_method_name_dict)
+    # exit()
+    # pval_list = [pval_dict[cohort] for cohort in cohort_list]
+    # pval_method_idx = [plot_method.index(pval_method_name_dict[cohort]) for cohort in cohort_list]
+    # print(pval_dict, pval_method_idx)
+    # exit()
+    all_handles = []
+    all_labels = []
+    width = 0.8 / len(plot_method)
+    ax = axes
+    xticks = []
+    xticklabels = []
+    # dataset_exp_res_df_used = dataset_exp_res_df[dataset_exp_res_df['Method'].isin(plot_method)]
+    # dataset_exp_res_std_df_used = dataset_exp_res_std_df[dataset_exp_res_std_df['Method'].isin(plot_method)]
+    # print(dataset_exp_res_df_used)
+    print(dataset_exp_res_df)
+    
+
+    for i, task_i in enumerate(plot_task):
+        y_method = dataset_exp_res_df[task_i]
+        
+        print('y_method:', y_method)
+        if metric_name == 'AUCPR':
+            y_l_idx = 1
+        else:
+            y_l_idx = 2
+
+        for j in range(len(plot_method)):
+            method = plot_method[j]
+            method_label = PLOT_METHODS_NAME[method]
+            
+            cur_width = width * (i * (len(plot_method) + 1) + (j + 1))
+            y_method_j = y_method[method]
+            print('method_name', method, 'y_method_j:', y_method_j, 'method_label:', method_label)
+            y = np.array(y_method_j)
+            y_mean = np.mean(y)
+            y_std_err = np.std(y) / np.sqrt(len(y))
+            print('y_mean:', y_mean, 'y_std_err:', y_std_err, 'y:', y)
+
+
+            if j == len(plot_method) // 2:
+                xticks.append(cur_width)
+                ticklabel = PLOT_X_LABELS[task_i]
+                xticklabels.append(ticklabel)
+
+            handle = ax.bar(cur_width, y_mean+0.05, width, label=method_label, color=color_mapping[j], zorder=3, bottom=-0.05)
+
+            if j == 0:
+                y_h = y
+                y_h_val = y_mean
+                y_std_err_h = y_std_err
+            if j == y_l_idx:
+                y_l = y
+                y_l_val = y_mean
+                y_std_err_l = y_std_err
+            if i == 0:
+                all_handles.append(handle)
+                all_labels.append(method_label)
+                
+
+            # if dataset_name == 'UW-Oph':
+            #     y_other_val = [resuls_dict[method][-k][key_in_results_dict[i]] for k in range(1, 6)]
+            #     # print('y_other_val', y_other_val, method)
+            #     y_std_err = np.std(y_other_val) / np.sqrt(len(y_other_val))
+            # else:
+            # if True:
+                # y_std_err = np.random.rand() * 0.002 / np.sqrt(5)
+                # y_std_err = std_list[j]               
+            
+            if err_bar:
+                # print('y_std_err', y_std_err)
+                ax.errorbar(cur_width, y_mean, yerr=y_std_err, fmt='none', ecolor='k', capsize=4, zorder=4)
+
+        # if dataset_name == 'UW-Oph':
+        #     y_h = [mae3d_results[-k][key_in_results_dict[i]] for k in range(1,6)]
+        #     y_l = [retfound3d_results[-k][key_in_results_dict[i]] for k in range(1,6)]
+        # else:
+        #     y_h = [y[0] + np.random.normal(0, 0.01) for _ in range(5)]
+        #     y_l = [y[1] + np.random.normal(0, 0.01) for _ in range(5)]
+
+        print('y_h and y_l:', y_h, y_l)
+        # t_stat, p_value = ttest_ind(y_h , y_l)
+        t_stat, p_value = ttest_rel(y_h , y_l)
+        print('t_stat:', t_stat, 'p_value:', p_value)
+        pval_list = [p_value]
+        pval_method_idx_list = [y_l_idx]
+        delta_list = [0.01]
+
+        for p_idx, p_value in enumerate(pval_list):
+            # p_value = pval_list[i]
+            stars = get_star_from_pvalue(p_value, star=True)
+            print('stars:', stars, p_value)
+            # pval_method_name = pval_method[p_idx]
+            # pval_method_idx = plot_method.index(pval_method_name)
+            pval_method_idx = pval_method_idx_list[p_idx]
+            # y_h_val = y[0]
+            # y_l_val = y[pval_method_idx]    
+            # y_std_err_h = std_list[0]
+            # y_std_err_l = std_list[pval_method_idx]
+
+            # print(pval_method_idx, y_h_val, y_l_val)
+            delta_y = delta_list[p_idx]
+            line_y = y_h_val + y_std_err_h + 2 * delta_y
+
+            x1 = width * (i * (len(plot_method) + 1) + 1)
+            x2 = width * (i * (len(plot_method) + 1) + (pval_method_idx + 1))
+        
+            if np.mean(y_h_val) > np.mean(y_l_val) and len(stars) > 0:
+                ax.plot([x1, x1], [y_h_val + y_std_err_h + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
+                ax.plot([x2, x2], [y_l_val + y_std_err_l + 0.5*delta_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
+                ax.plot([x1, x2], [line_y, line_y], c=ax.spines['bottom'].get_edgecolor(), linewidth=1)
+                ax.text((x1 + x2)/2, line_y, stars, fontsize=25, ha='center')#, va='bottom', )
+        if i == 0 and print_ylabels:
+            ax.set_ylabel(f'{plot_metric_name}', fontsize=25)
+
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(xticklabels) #, rotation=45, ha='right')
+    # if print_xlabels:
+    #     ax.set_xlabel(capitalize_first_letter('Test'), fontsize=15)
+
+
+
+    ax.tick_params(axis='y', which='major', labelsize=25)
+    ax.tick_params(axis='x', which='major', labelsize=25)
+    
+    y_max = np.max(y)
+    y_max = max(0.77, y_max)
+    y_min = np.min(y)
+
+    y_min = min(0.6, y_min)
+    if metric_name == 'R2':
+        y_max = 0.8
+        y_min = 0.4
+    print('y_max', y_max, 'y_min', y_min)
+    # if col_name == 'mean rank':
+    #     y_max = 175
+    #     ax.set_ylim(0, y_max + 5)
+    # else:
+    if True:
+        # y_max = 1
+        ax.set_ylim(0.6, y_max + 0.01)
+        ax.set_yticks([0.6, 0.7, 0.8, 0.9, 1.0])
+        if metric_name == 'R2':
+            ax.set_yticks([0.4, 0.5, 0.6, 0.7, 0.8])
+            ax.set_ylim(0.4, 0.8)
+
+    # ax.set_ylim(floor_to_nearest(y_min, 0.004), line_y + 1*delta_y)
+    format_ax(ax)
+    # full_col_names = [f'{prefix} {col_name}' for col_name in col_names]
+    # print(full_col_names)
+    # exit()
+    # full_col_names = [f'{prefix} {col_name}' for col_name in col_names]
+    # full_col_names = [f'{prefix} {col_name}' for prefix in prefix_list]
+    # key_in_results_dict = [prefix_mapping[prefix] + '_' + col_mapping[col_name] for prefix in prefix_list]
+    # print(full_col_names, key_in_results_dict, retfound2d_results[0][key_in_results_dict[0]])
+    # exit()
+
+
+    return all_handles, all_labels
+
+
+
+
+def plot_slivit_crossmodal_exp_res(fig, ax, dataset_exp_res_df, plot_metric=None, plot_method=None, color_selection=None, legend_ncol=4, bbox_adjust_ratio=0.9):
+    '''
+    Plot the SLIViT crossmodal data classification results
+    dataset_exp_res_df: a list of dataframes, each dataframe contains the results of a dataset, should be by metric
+    '''
+    # fig, ax = plt.subplots(figsize=(1.*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=4)
+    # first_row_prefix = 'OCT_to_IR'
+    # second_row_prefix = 'IR_to_OCT'
+    # col_names = ['recall@1', 'recall@5', 'recall@10', 'mean rank']
+    # prefix_list = ['OCT_to_IR', 'IR_to_OCT']
+
+    # col_name = 'recall@1'
+    # col_name = col_name_list[0]
+    print(dataset_exp_res_df)
+    print(dataset_exp_res_df.keys(), dataset_exp_res_df['AUC'].keys())
+    if plot_metric is None:
+        plot_metric = list(dataset_exp_res_df.keys())
+    for i in range(len(plot_metric)):
+        all_handles, all_labels = plot_slivit_crossmodal_metric_inonebar(ax[i], dataset_exp_res_df[plot_metric[i]], plot_metric[i]) #, plot_method=plot_method, color_selection=color_selection)
+    # exit()
+    # all_handles, all_labels = plot_retclip_recall_and_mean_rank_metric_inonebar(ax[0], dataset_exp_res_df[0], dataset_exp_res_std_df[0], 'BCVA', print_ylabels=True, plot_method=plot_method, color_selection=color_selection)
+    # # col_name = 'recall@5'
+    # # col_name = col_name_list[1]
+    # plot_retclip_recall_and_mean_rank_metric_inonebar(ax[1], dataset_exp_res_df[1], dataset_exp_res_std_df[1], 'GAGrowth', print_xlabels=False, print_ylabels=True, plot_method=plot_method, color_selection=color_selection)
+    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.02), ncol=legend_ncol, fontsize=25, frameon=False)
+    # fig.tight_layout(rect=[0, 0.02, 1, 0.95])
+    fig.tight_layout(rect=[0, -0.02, 1, bbox_adjust_ratio])
+    # fig.suptitle('UW-Medicine', fontsize=15, y=0.04)
+    return fig, ax, all_handles, all_labels
+
+
+
+# dataset_exp_res_df = [GA_prog_BCVA_mean_res_df, GA_prog_GAGrowth_mean_res_df]
+# dataset_exp_res_std_df = [GA_prog_BCVA_std_res_df, GA_prog_GAGrowth_std_res_df]
+# plot_methods_used = ['OCTCube-COEP-3mod', 'OCTCube-smOCT', 'FAF-DenseNet', 'OCT-DenseNet3D', 'RETFound-smOCT']
+
+COLORS_SLIVIT_CROSSMODAL_compute
+
+# color_selection = [COLORS_GA_prog_compute[m] for m in plot_methods_used]
+dataset_exp_res_df = bymetric_plot_dict
+fig, axes = plt.subplots(figsize=(2.5*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=1, ncols=3, gridspec_kw={'width_ratios': [2, 2, 1]})
+plot_slivit_crossmodal_exp_res(fig, axes, dataset_exp_res_df=dataset_exp_res_df)#, dataset_exp_res_std_df=dataset_exp_res_std_df)#, plot_method=plot_methods_used,  bbox_adjust_ratio=0.9) # color_selection=color_selection,
+fig.savefig(os.path.join(save_file_dir, 'save_figs', 'SLIViT_crossmodal_data_cls_plot_top5_allinonebar_moreRes.png'), dpi=300)
+fig.savefig(os.path.join(save_file_dir, 'save_figs', 'SLIViT_crossmodal_data_cls_plot_top5_allinonebar_moreRes.pdf'), dpi=300)
+
+
+# fig, axes = plt.subplots(figsize=(2.5*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=1, ncols=2)
+# plot_retclip_exp_res(fig, axes, dataset_exp_res_df=dataset_exp_res_df)
+# fig.savefig(os.path.join(save_file_dir, 'save_figs', 'GA_prog_BCVA_mean_res_ci_together_combine_metric_inonebar.png'))
+# fig.savefig(os.path.join(save_file_dir, 'save_figs', 'GA_prog_BCVA_mean_res_ci_together_combine_metric_inonebar.pdf'), dpi=300)
+
+exit()
+
+
+
+
+
+
+def plot_retclip_recall_and_mean_rank(axes, retclip_exp_res_df, prefix, col_names, reverse_plot=True):
+    plot_method = retclip_exp_res_df['Method'].tolist()
+    print(plot_method)
+    full_col_names = [f'{prefix} {col_name}' for col_name in col_names]
+    print(full_col_names)
+    all_handles = []
+    all_labels = []
+    for i, col_name in enumerate(col_names):
+        ax = axes[i]
+        y = retclip_exp_res_df[full_col_names[i]].tolist()
+        print(y)
+        
+        width = 0.8 / len(plot_method)
+        if reverse_plot:
+            y = y[::-1]
+        for j in range(len(plot_method)):
+            method = plot_method[::-1][j]
+            method_label = PLOT_METHODS_NAME[method]
+            handle = ax.bar((j + 1)*width, y[j]+0.05, width, label=method_label, color=COLORS[method], zorder=3, bottom=-0.05)
+            if i == 0:
+                all_handles.append(handle)
+                all_labels.append(method_label)
+                print(all_labels, all_handles)
+        ax.set_xticks([])
+        ax.set_xlabel(capitalize_first_letter(col_name), fontsize=8)
+        if i == 0:
+            ax.set_ylabel(prefix.replace('_', ' '), fontsize=8)
+        # y_max = np.max(y)
+        y_max = max(1, np.max(y)) 
+        y_min = np.min(y)
+        print('y_max', y_max, 'y_min', y_min)
+        if col_name == 'mean rank':
+            ax.set_ylim(0, y_max + 5)
+        else:
+            ax.set_ylim(-0.01, y_max + 0.01)
+        format_ax(ax)
+    return all_handles, all_labels
+
+
+
+
+def plot_GA_prog_exp_res(GA_prog_exp_res_df):
+    fig, ax = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=4)
+    first_row_prefix = 'OCT_to_IR'
+    second_row_prefix = 'IR_to_OCT'
+    col_names = ['recall@1', 'recall@5', 'recall@10', 'mean rank']
+    all_handles, all_labels = plot_retclip_recall_and_mean_rank(ax[0, :], GA_prog_exp_res_df, first_row_prefix, col_names)
+    plot_retclip_recall_and_mean_rank(ax[1, :], GA_prog_exp_res_df, second_row_prefix, col_names)
+    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.012), ncol=3, fontsize=8, frameon=False)
+    fig.suptitle('GA BL BCVA', fontsize=10, y=0.03)
+    fig.tight_layout()
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'GA_prog_exp_res.png'))
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'GA_prog_exp_res.pdf'), dpi=300)
+    # Draw bar plot for each metric
+    
+plot_GA_prog_exp_res(GA_prog_BCVA_mean_res_df)
+exit()
+
+
 
 
 # -----------------DATASET SETTINGS-----------------
@@ -444,7 +931,7 @@ if __name__ == '__main__':
     fig.tight_layout(rect=[0, 0, 1, 0.96], h_pad=0.5, w_pad=0.5)
     fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=9, fontsize=15, columnspacing=0.8, frameon=False)
     # fig.tight_layout()
-    exit()
+
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3a-k_ci_allinonebar.pdf'), dpi=300)
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3a-k_ci_allinonebar.png'))
     import time

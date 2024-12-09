@@ -38,8 +38,8 @@ PLOT_METHODS_NAME = {
 plot_col_idx = ['auroc', 'acc', 'auprc', 'bal_acc']
 plot_col = 0
 plot_name = 'auroc'
-# plot_col = 2
-# plot_name = 'auprc'
+plot_col = 2
+plot_name = 'auprc'
 
 save_file_dir = os.path.dirname(os.path.abspath(__file__))
 retclip_exp_res = os.path.join(save_file_dir, 'retClip_exp_res.csv')
@@ -76,7 +76,7 @@ print(test_list[0] - test_list[1], test_list[0] - test_list[2])
     
 
 print(res_df_dict)
-exit()
+# exit()
 
 # inhouse_setting = 'default'
 inhouse_setting = 'fewshot'
@@ -91,7 +91,7 @@ for task in inhouse_grouped_dict[inhouse_setting].keys():
 # exit()
 print(ext_oph_grouped_dict)
 print(ext_oph_grouped_dict['fewshot'].keys())
-sorted_keys = ['UMN', 'HCMS', 'DUKE14', 'GLAUCOMA', 'OIMHS']
+sorted_keys = ['UMN', 'HCMS', 'DUKE14', 'OIMHS', 'GLAUCOMA' ]
 setting_mapping = {
     'DUKE14': 'fewshot',
     'GLAUCOMA': 'fewshot',

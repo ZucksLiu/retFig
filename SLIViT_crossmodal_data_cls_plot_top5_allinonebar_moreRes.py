@@ -15,9 +15,9 @@ save_file_dir = os.path.dirname(os.path.abspath(__file__))
 crossmodal_results_dir = os.path.join(save_file_dir, 'CrossModal-results-20241027')
 
 CROSSMODAL_EXPR_NAME = {
-    'CT3D': (['OCTCube', 'ConvNext-SLIViT', 'RETFound'], ['AUC', 'AUCPR']),
-    'EF': (['OCTCube-SLIViT', 'ConvNext-SLIViT', 'RETFound'], ['R2']),
-    'EF_b': (['OCTCube', 'ConvNext-SLIViT', 'RETFound'], ['AUC', 'AUCPR']),
+    'CT3D': (['OCTCube',  'RETFound', 'ConvNext-SLIViT'], ['AUC', 'AUCPR']),
+    'EF': (['OCTCube-SLIViT', 'RETFound', 'ConvNext-SLIViT'], ['R2']),
+    'EF_b': (['OCTCube', 'RETFound', 'ConvNext-SLIViT'], ['AUC', 'AUCPR']),
 }
 all_plot_metrics = sorted(set([metric for method_list, metric_list in CROSSMODAL_EXPR_NAME.values() for metric in metric_list]))
 all_plot_metrics = ['AUCPR', 'AUC', 'R2']
@@ -52,8 +52,9 @@ PLOT_X_LABELS = {
 PLOT_METHODS_NAME = {
     'OCTCube-SLIViT': "OCTCube",
     "OCTCube": "OCTCube",
-    "ConvNext-SLIViT": "SLIViT",
     "RETFound": "RETFound",
+    "ConvNext-SLIViT": "SLIViT",
+
 }
 
 PLOT_METRIC_NAME = {
@@ -100,7 +101,7 @@ def plot_slivit_crossmodal_metric_inonebar(axes, dataset_exp_res_df, metric_name
     if plot_method is None:
         plot_method = list(dataset_exp_res_df[plot_task[0]])
     print('plot_method:', plot_method)
-
+    # exit()
     if color_selection is None:
         color_mapping = [COLORS_SLIVIT_CROSSMODAL_compute[m] for m in plot_method]
     else:
@@ -138,9 +139,9 @@ def plot_slivit_crossmodal_metric_inonebar(axes, dataset_exp_res_df, metric_name
         
         print('y_method:', y_method)
         if metric_name == 'AUCPR':
-            y_l_idx = 2
-        else:
             y_l_idx = 1
+        else:
+            y_l_idx = 2
 
         for j in range(len(plot_method)):
             method = plot_method[j]

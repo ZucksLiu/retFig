@@ -44,6 +44,8 @@ def get_results_df(octcube_df, retfound_3d_df, retfound_2d_df, octcube_ir_df, re
 home_directory = os.path.expanduser('~') + '/'
 save_file_dir = os.path.dirname(os.path.abspath(__file__))
 
+if 'wxdeng' in home_directory:
+    home_directory = '/home/wxdeng/oph/'
 
 retclip_aireadi_laterality_dir = home_directory + 'retclip_eval_aireadi_laterality/'
 octcube_df = pd.read_csv(retclip_aireadi_laterality_dir + 'MAE3D_nodrop_laterality.csv')

@@ -10,6 +10,7 @@ from fig_utils import *
 from scipy.stats import ttest_rel, ttest_ind
 
 
+# this_file_dir = '/home/zucksliu/retfound_baseline/'
 home_dir = os.path.expanduser("~")
 if 'wxdeng' in home_dir:
     this_file_dir = '/home/wxdeng/oph/retfound_baseline/'
@@ -39,7 +40,7 @@ medianprops = {'color': 'r', 'linewidth': 1.5}
 EXT_OPH_DATASET_DICT = {
     # "DUKE13": "duke13",
     "DUKE14": "duke14",
-    "GLAUCOMA": "glaucoma",
+    # "GLAUCOMA": "glaucoma",
     "UMN": "umn",
     "OIMHS": "oimhs",
     "HCMS": "hcms",
@@ -49,7 +50,7 @@ EXT_OPH_DATASET_DICT = {
 EXT_OPH_DATASET_EVAL_SETTING = {
     # "DUKE13": ["fewshot"],
     "DUKE14": ["fewshot"],
-    "GLAUCOMA":["fewshot", "default"],
+    # "GLAUCOMA":["fewshot", "default"],
     "UMN": ["fewshot"],
     "OIMHS": ["fewshot", "default"],
     "HCMS": ["fewshot", "default"],
@@ -283,10 +284,8 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
             if i == 0:  # Collect handle for legend only once per method across all tasks
                 all_handles.append(handle)
                 all_labels.append(plot_methods_name[j])
-
-        if 'GLAUCOMA' not in plot_task:
-            agg_ours.append(np.mean(df_dict[plot_task][plot_methods[0]][:, plot_col_idx]))
-            agg_r3d.append(np.mean(df_dict[plot_task][plot_methods[1]][:, plot_col_idx]))
+        agg_ours.append(np.mean(df_dict[plot_task][plot_methods[0]][:, plot_col_idx]))
+        agg_r3d.append(np.mean(df_dict[plot_task][plot_methods[1]][:, plot_col_idx]))
         y_min = np.min([np.mean(df_dict[plot_task][m][:, plot_col_idx]) for m in plot_methods])
         if plot_col == 'auroc':
             y_min = np.min([y_min, 0.5])
@@ -344,12 +343,9 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
     ax.set_xlim(0.05, max_width + width)
     avg_ours = np.mean(agg_ours)
     avg_r3d = np.mean(agg_r3d)
-    print('avg_ours:', avg_ours, 'avg_r3d:', avg_r3d, len(agg_ours), len(agg_r3d))
-
     avg_improvement = avg_ours - avg_r3d
     avg_rel_improvement = avg_improvement / avg_r3d
-    print(f'{plot_col}, Average improvement: {avg_improvement}, Average relative improvement: {avg_rel_improvement}', 'avg_ours:', avg_ours, 'avg_r3d:', avg_r3d)   
-
+    print(f'{plot_col}, Average improvement: {avg_improvement}, Average relative improvement: {avg_rel_improvement}', 'avg_ours:', avg_ours, 'avg_r3d:', avg_r3d)    
     return all_handles, all_labels
     # add legend for the axes
     
@@ -400,10 +396,10 @@ if __name__ == '__main__':
     print(len(grouped_dict['fewshot']), grouped_dict['fewshot'].keys())
 
     # Plot the figure
-    fig, axes = plt.subplots(figsize=(1.7*FIG_WIDTH, 1*FIG_HEIGHT), nrows=2, ncols=1)
+    fig, axes = plt.subplots(figsize=(1.3*FIG_WIDTH, 1*FIG_HEIGHT), nrows=2, ncols=1)
     setting_mapping = {
         'DUKE14': 'fewshot',
-        'GLAUCOMA': 'fewshot',
+        # 'GLAUCOMA': 'fewshot',
         'UMN': 'fewshot',
         'HCMS': 'default',
         'OIMHS': 'fewshot',
@@ -413,32 +409,26 @@ if __name__ == '__main__':
     # exit()
     used_dict = df_dict
     # used_dict = grouped_dict
-    plot_tasks_col = ['DUKE14', 'GLAUCOMA', 'UMN', 'HCMS', 'OIMHS']
+    # plot_tasks_col = ['DUKE14', 'GLAUCOMA', 'UMN', 'HCMS', 'OIMHS']
+    plot_tasks_col = ['DUKE14', 'UMN', 'HCMS', 'OIMHS']
     # plot the subfigure a-e
     ext_oph_tasks_barplot(fig, axes[0], used_dict, setting_code='fewshot', plot_col='auprc', plot_tasks=plot_tasks_col, plot_methods=[], plot_methods_name=None, y_name='AUPRC') # auprc, Average improvement: 0.11126311360000019, Average relative improvement: 0.16845254565233772 avg_ours: 0.7717643436 avg_r3d: 0.6605012299999998
     # auprc, Average improvement: 0.06042830919999986, Average relative improvement: 0.0849504401263323 avg_ours: 0.7717643436 avg_r3d: 0.7113360344000002
     # exit()
-
-    # no glaucoma auprc, auprc, Average improvement: 0.0635235395, Average relative improvement: 0.0832472437063084 avg_ours: 0.82659432325 avg_r3d: 0.76307078375
-    # no glaucoma auroc, auroc, Average improvement: 0.07017385375000007, Average relative improvement: 0.08701258917587629 avg_ours: 0.8766531737500001 avg_r3d: 0.80647932 
-    # no glaucoma auprc r2d: auprc, Average improvement: 0.16015945025000022, Average relative improvement: 0.24032273330630505 avg_ours: 0.82659432325 avg_r3d: 0.6664348729999998 
-    # no glaucoma auroc r2d: auroc, Average improvement: 0.17270201625000003, Average relative improvement: 0.24533238479688135 avg_ours: 0.8766531737500001 avg_r3d: 0.7039511575
     import time 
     # time.sleep(10)
-    # exit()
     # plot the subfigure f-j
     all_handles, all_labels = ext_oph_tasks_barplot(fig, axes[1], used_dict, setting_code='fewshot', plot_col='auroc', plot_tasks=plot_tasks_col, plot_methods=[], plot_methods_name=None, y_name='AUROC') # auroc, Average improvement: 0.11160484419999994, Average relative improvement: 0.15939239997895133 avg_ours: 0.8117940892 avg_r2d: 0.700189245
     # auroc, Average improvement: 0.05221426259999984, Average relative improvement: 0.06874098122605383 avg_ours: 0.8117940892 avg_r3d: 0.7595798266000001
     # plot the subfigure k
-    time.sleep(10)
-    fig.tight_layout( rect=[0, -0.015, 1, 0.93])
-    # fig.tight_layout()
-    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=3, fontsize=13, frameon=False, columnspacing=0.8)
+    # fig.tight_layout(rect=[0, -0.015, 1, 0.93])
+    fig.tight_layout() 
+    # fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=3, fontsize=13, frameon=False, columnspacing=0.8)
 
 
     
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k_allinonebar_w_slivit_hcms.pdf'), dpi=300)
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k_allinonebar_w_slivit_hcms.png'))
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k_allinonebar_w_slivit_hcms_no_glaucoma.pdf'), dpi=300)
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k_allinonebar_w_slivit_hcms_no_glaucoma.png'))
     # import time 
     # # time.sleep(10)
     # fig, ax = plt.subplots(figsize=(1.7*FIG_WIDTH, 1*FIG_HEIGHT), nrows=2, ncols=1)

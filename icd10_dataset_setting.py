@@ -3,7 +3,11 @@ import numpy as np
 import pandas as pd
 import json
 
-this_file_dir = '/home/zucksliu/retfound_baseline/'
+home_dir = os.path.expanduser("~")
+if 'wxdeng' in home_dir:
+    this_file_dir = '/home/wxdeng/oph/retfound_baseline/'
+else:
+    this_file_dir = '/home/zucksliu/retfound_baseline/'
 FRAME_DICT = {"3D": "3D", "2D": "2DCenter"}
 save_file_dir = os.path.dirname(os.path.abspath(__file__))
 

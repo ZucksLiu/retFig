@@ -1,7 +1,11 @@
 import os
 import numpy as np
 
-this_file_dir = '/home/zucksliu/retfound_baseline/'
+home_dir = os.path.expanduser("~")
+if 'wxdeng' in home_dir:
+    this_file_dir = '/home/wxdeng/oph/retfound_baseline/'
+else:
+    this_file_dir = '/home/zucksliu/retfound_baseline/'
 FRAME_DICT = {"3D": "3D", "2D": "2DCenter"}
 # Naming mapping of evaluation setting
 EXT_OPH_SETTING_DICT = {"fewshot": "fewshot_10folds", "default": ""}

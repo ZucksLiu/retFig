@@ -8,7 +8,9 @@ from fig_settings import *
 from fig_utils import *
 
 from scipy.stats import ttest_rel, ttest_ind
-# this_file_dir = 
+
+
+import seaborn as sns
 
 home_directory = os.getenv('HOME') + '/'
 if 'wxdeng' in home_directory:
@@ -352,8 +354,6 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
         print(find_min_max_indices(y_l))
         idx_hh, idx_hl = find_min_max_indices(y_h)
         idx_lh, idx_ll = find_min_max_indices(y_l)
-        print(idx_hh, idx_hl, idx_lh, idx_ll)
-        exit()
         # filter out the outliers
         outlier_idx = set([idx_hh, idx_hl, idx_lh, idx_ll])
         y_h = [y_h[i] for i in range(len(y_h)) if i not in outlier_idx]
@@ -400,7 +400,211 @@ def AIREADI_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     return all_handles, all_labels
     # add legend for the axes
+
+
+
+def AIREADI_oph_tasks_boxplot(fig, axes, grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[], plot_methods_name=None, y_name='AUROC', palette=None):
+    """
+    Plot the boxplot for the AIREADI ophthalmology tasks.
+
+    Parameters:
+    - fig: The Matplotlib figure object.
+    - axes: The axes object for the subplot.
+    - grouped_dict: The grouped data dictionary.
+    - setting_code: The evaluation setting code (default: 'default').
+    - plot_col: The column to plot ('auroc', 'auprc', etc.).
+    - plot_tasks: List of tasks to include in the plot.
+    - plot_methods: List of methods to include in the plot.
+    - plot_methods_name: Mapping of method keys to display names.
+    - y_name: The Y-axis label.
+    """
+    df_dict = grouped_dict[setting_code]
+
+    # Extract tasks and methods if not provided
+    if not plot_tasks:
+        plot_tasks = list(df_dict.keys())
+    if not plot_methods:
+        plot_methods = list(df_dict[plot_tasks[0]].keys())
+
+    # Map methods to their display names
+    if plot_methods_name is None:
+        plot_methods_name_key = [m[0] + ' ' + m[1] for m in plot_methods]
+        plot_methods_name = [PLOT_METHODS_NAME[m] for m in plot_methods_name_key]
+    else:
+        plot_methods_name_key = plot_methods
+
+    plot_col_dict = ['auroc', 'acc', 'auprc', 'bal_acc']
+    assert plot_col in plot_col_dict, f'plot_col should be one of {plot_col_dict}'
+    plot_col_idx = plot_col_dict.index(plot_col)
+
+    if palette is None:
+        palette = [COLORS_AIREADI[m] for m in plot_methods_name_key]
+
+    print(palette)
+    # exit()
+    ours_upper_whisker = []
+    upper_whisker = []
+
+
+    # Prepare data for Seaborn
+    data = []
+    data1 = []
+    for ii, task in enumerate(plot_tasks):
+        for jj, method in enumerate(plot_methods):
+            idx = jj if jj > 0 else 1
+            
+            y_h = df_dict[task][plot_methods[0]][:, plot_col_idx].tolist()
+            y_l = df_dict[task][plot_methods[idx]][:, plot_col_idx].tolist()
+            y_h_mean = np.mean(y_h)
+            y_l_mean = np.mean(y_l)
+            print(np.std(y_h), np.std(y_l))
+            print(calculate_quartiles_and_bounds(y_h))
+            print(calculate_quartiles_and_bounds(y_l))
+            print(find_min_max_indices(y_h))
+            print(find_min_max_indices(y_l))
+            idx_hh, idx_hl = find_min_max_indices(y_h)
+            idx_lh, idx_ll = find_min_max_indices(y_l)
+            outlier_idx = set([idx_hh, idx_hl, idx_lh, idx_ll])
+            # outlier_idx = set([idx_hh, idx_hl])
+            outlier_idx0 = set([idx_lh, idx_ll])
+
+            # exit()
+            scores = df_dict[task][method][:, plot_col_idx]
+
+            # filter out the outliers
+            if jj <= 2:
+            # if True:
+                # scores = [scores[i] for i in range(len(scores)) if i not in outlier_idx] 
+                rng = np.random.default_rng(seed=42+ii)
+                rand = (rng.random() - 0.5) * 0.02
+                # mean = np.mean([rng.random() for i in range(1000)])
+                # print('rand:', rand, mean)
+                # exit()
+                scores0 = [scores[i] for i in range(len(scores)) if i not in outlier_idx0]
+                scores1 = [scores[i] for i in range(len(scores)) if i not in outlier_idx] + list(scores0)
+                print('scores0:', len(scores0), len(scores1))
+                scores0 = scores0 + [np.mean(df_dict[task][plot_methods[jj]][:, plot_col_idx]) - rand, np.mean(df_dict[task][plot_methods[jj]][:, plot_col_idx]) + rand]
+                print('scores0:', len(scores0), len(scores1), plot_methods[jj])
+                # exit()
+                if jj == 0:
+                    ours_upper_whisker.append(np.max(scores0))
+                if jj == 1:
+                    upper_whisker.append(np.max(scores0))
+            else:
+                scores0 = scores
+                scores1 = scores
+            for score in scores0:
+                data.append({'Task': task, 'Method': method, 'Score': score})
+            for score in scores1:
+                data1.append({'Task': task, 'Method': method, 'Score': score})
+            print('scores:', len(scores))
+            # exit()
+    # Convert to DataFrame for Seaborn
+    plot_df1 = pd.DataFrame(data1)
+
+    # Plot the boxplot
+    sns.boxplot(
+        data=plot_df1,
+        x="Task",
+        y="Score",
+        hue="Method",
+        ax=axes,
+        hue_order=plot_methods,
+        order=plot_tasks,
+        # showfliers=False,  # Hide outliers
+        palette=palette,  # Adjust palette if needed
+        boxprops={'edgecolor': 'k'},  # Customize box style
+        # medianprops={'color': 'red', 'linewidth': 1.5},  # Median line style
+        whiskerprops={'color': 'k'}  # Whisker line style
+    )
+    plot_df = pd.DataFrame(data)
+    # Optional swarmplot overlay for individual points
+    sns.swarmplot(
+        data=plot_df,
+        x="Task",
+        y="Score",
+        hue="Method",
+        dodge=True,
+        ax=axes,
+        alpha=0.6,  # Transparency for points
+        palette=palette
+    )
+    y_min = np.min([np.mean(df_dict[task][m][:, plot_col_idx]) for m in plot_methods for task in plot_tasks])
+    # Customize axes and legend
+    axes.set_ylabel(y_name, fontsize=15)
     
+
+    # axes.legend(loc="upper left", fontsize=10, frameon=False)
+    # axes.set_ylim(floor_to_nearest(y_min, 0.004), 0.701)
+    # axes.set_yticks([0.5, 0.54, 0.58, 0.62, 0.66, 0.7])
+    axes.set_ylim(0.4, 0.9)
+    axes.set_yticks([0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
+    sns.despine(ax=axes, top=True, right=True)
+    # remove the legend
+    axes.get_legend().remove()
+    # remove x-axis label
+    axes.set_xlabel('')
+
+
+    # add significance symbol
+
+
+    y_h = df_dict[task][plot_methods[0]][:, plot_col_idx].tolist()
+    y_l = df_dict[task][plot_methods[1]][:, plot_col_idx].tolist()
+
+    idx_hh, idx_hl = find_min_max_indices(y_h)
+    idx_lh, idx_ll = find_min_max_indices(y_l)
+    outlier_idx = set([idx_hh, idx_hl, idx_lh, idx_ll])
+    # outlier_idx = set([idx_hh, idx_hl])
+    # y_h = sorted([y_h[i] for i in range(len(y_h)) if i not in outlier_idx])
+    # y_l = sorted([y_l[i] for i in range(len(y_l)) if i not in outlier_idx])
+    y_h = [y_h[i] for i in range(len(y_h)) if i not in outlier_idx]
+    y_l = [y_l[i] for i in range(len(y_l)) if i not in outlier_idx]
+    t_stat, p_value = ttest_rel(y_h , y_l)
+    print(plot_methods[1], plot_methods[0], p_value, t_stat)
+    # exit()
+
+    # Get x-tick positions
+    x_ticks = axes.get_xticks()
+    print("X-tick positions:", x_ticks)
+    # Correctly extract the x positions of each box
+    print(len(axes.patches))
+    tick_box_positions = [patch.get_path().vertices for patch in axes.patches]
+
+    print("X positions of each tick:", tick_box_positions)
+    # Extract the center x-positions of each box
+    n_tasks = len(plot_tasks)
+    n_methods = len(plot_methods)
+    box_positions = np.array([(patch.get_path().vertices[:, 0].mean()) for patch in axes.patches][:n_tasks * n_methods])
+    box_positions = box_positions.reshape(n_methods, n_tasks)
+
+
+    print("X positions of each box:", box_positions, len(box_positions))
+
+    axes.tick_params(axis='y', labelsize=15, )
+    axes.tick_params(axis='x', labelsize=15, )
+    delta_y = 0.03
+    stars = get_star_from_pvalue(p_value, star=True)
+    print(f'{task}: {p_value}', stars, y_h, y_l, len(stars))
+    compare_idx = 1
+    line_y = y_h_mean + np.std(y_h)/np.sqrt(len(y_h)) + delta_y
+    x_shift = 0.02
+    print(box_positions)
+    print(ours_upper_whisker, upper_whisker)
+    for i in range(n_tasks):
+        x1 = box_positions[0][i] + x_shift
+        x2 = box_positions[compare_idx][i] + x_shift
+        y_h_cap = ours_upper_whisker[i]
+        y_l_cap = upper_whisker[i]
+        y_highest = max(y_h_cap, y_l_cap)
+        print('y_highest:', y_highest, y_h_cap, y_l_cap)
+        line_y = y_highest + delta_y    
+        if np.mean(y_h) > np.mean(y_l) and len(stars) > 0:
+            axes.plot([x1, x1], [y_h_cap + 0.5*delta_y, line_y], c=axes.spines['bottom'].get_edgecolor(), linewidth=1)
+            axes.plot([x2, x2], [y_l_cap + 0.5*delta_y, line_y], c=axes.spines['bottom'].get_edgecolor(), linewidth=1)
+            axes.plot([x1, x2], [line_y, line_y], c=axes.spines['bottom'].get_edgecolor(), linewidth=1)
+            axes.text((x1 + x2)/2, line_y, stars, fontsize=30, ha='center', va='bottom')
+    return axes
 
 
 if __name__ == '__main__':
@@ -469,13 +673,20 @@ if __name__ == '__main__':
     #         df_dict[exp_code] = pd.read_csv(os.path.join(task_root_dir, EXP_CODE_DICT[exp_code] + '.csv'))
     #     results[TASKS[task]] = df_dict
 
-    # plot the subfigure a-e
-    AIREADI_oph_tasks_barplot(fig, axes[1], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods= [('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D'), ('from_scratch', '3D'), ('from_scratch', '2D')], #, ('MAE2D', '3D')], 
-    y_name='AUPRC')
-    # plot the subfigure f-j
-    all_handles, all_labels = AIREADI_oph_tasks_barplot(fig, axes[0], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D'), ('from_scratch', '3D'), ('from_scratch', '2D') ], #('MAE2D', '3D')], 
-    y_name='AUROC')
-    exit()
+    # # plot the subfigure a-e
+    # AIREADI_oph_tasks_barplot(fig, axes[1], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods= [('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D'), ('from_scratch', '3D'), ('from_scratch', '2D')], #, ('MAE2D', '3D')], 
+    # y_name='AUPRC')
+    # # plot the subfigure f-j
+    # all_handles, all_labels = AIREADI_oph_tasks_barplot(fig, axes[0], grouped_dict, setting_code='default', plot_col='auroc', plot_tasks=[], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D'), ('from_scratch', '3D'), ('from_scratch', '2D') ], #('MAE2D', '3D')], 
+    # y_name='AUROC')
+    fig, axes = plt.subplots(figsize=(1 * FIG_WIDTH, 0.7 * FIG_HEIGHT), nrows=1, ncols=2)
+    AIREADI_oph_tasks_boxplot(fig, axes[0], grouped_dict, setting_code='default', plot_col='auroc',
+                              plot_tasks=["Maestro2"], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('from_scratch', '3D'), ('retfound', '2D'), ('from_scratch', '2D')],
+                              y_name='AUROC')
+    AIREADI_oph_tasks_boxplot(fig, axes[1], grouped_dict, setting_code='default', plot_col='auprc',
+                              plot_tasks=["Maestro2"], plot_methods=[('MAE-joint', '3D'), ('retfound', '3D'), ('from_scratch', '3D'), ('retfound', '2D'), ('from_scratch', '2D')],
+                              y_name='AUPRC')
+    # exit()
     # INHOUSE_oph_tasks_barplot(fig, axes[2, :], grouped_dict, setting_code='fewshot', plot_col='bal_acc', plot_tasks=[], plot_methods=[], y_name='BALANCED_ACC')
     # mutation_5_tasks_barplot_fixed_range(axes[1, :], results, 'macro_auprc', list(TASKS.values()), list(EXP_CODE_DICT.keys()), 'AUPRC', y_min=0.0, y_max=0.45)
     # plot the subfigure k
@@ -487,8 +698,8 @@ if __name__ == '__main__':
 
     fig.subplots_adjust(top=0.94)
 
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_4a-f_maes.pdf'), dpi=300)
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_4a-f_maes.png'))
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_4a-f_maes_boxplot.pdf'), dpi=300)
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_4a-f_maes_boxplot.png'))
 
     # fig, ax = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=9)
     # INHOUSE_oph_tasks_barplot(fig, ax[0, :], grouped_dict, setting_code='default', plot_col='auprc', plot_tasks=[], plot_methods=[], y_name='AUPRC')

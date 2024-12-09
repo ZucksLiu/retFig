@@ -10,6 +10,7 @@ from fig_utils import *
 from scipy.stats import ttest_rel, ttest_ind
 
 
+# this_file_dir = '/home/zucksliu/retfound_baseline/'
 home_dir = os.path.expanduser("~")
 if 'wxdeng' in home_dir:
     this_file_dir = '/home/wxdeng/oph/retfound_baseline/'
@@ -23,7 +24,7 @@ PLOT_METHODS_NAME = {
     "MAE-joint 3D": "OCTCube",
     "retfound 3D": "RETFound (all)",
     "from_scratch 3D": "Supervised (all, w/o pre-training)",
-    "slivit 3D": "SLIViT",
+    # "slivit 3D": "SLIViT",
     "retfound 2D": "RETFound (center)",
     "from_scratch 2D": "Supervised (center, w/o pre-training)",
 }
@@ -31,42 +32,43 @@ PLOT_METHODS_NAME = {
 boxprops = {'edgecolor': 'k'}
 whiskerprops = {'color': 'k'}
 capprops = {'color': 'k'}
-medianprops = {'color': 'r', 'linewidth': 1.5}
+medianprops = {'color': 'k', 'linewidth': 1.5}
 # ---------- END OF CUSTOMIZED COLOR SETTINGS-----------------
 
 # -----------------DATASET SETTINGS-----------------
 # External Ophthalmology datasets mapping
 EXT_OPH_DATASET_DICT = {
     # "DUKE13": "duke13",
-    "DUKE14": "duke14",
+    # "DUKE14": "duke14",
     "GLAUCOMA": "glaucoma",
-    "UMN": "umn",
-    "OIMHS": "oimhs",
-    "HCMS": "hcms",
+    # "UMN": "umn",
+    # "OIMHS": "oimhs",
+    # "HCMS": "hcms",
     } 
 
 # External Ophthalmology datasets and the corresponding available experimental settings
 EXT_OPH_DATASET_EVAL_SETTING = {
     # "DUKE13": ["fewshot"],
-    "DUKE14": ["fewshot"],
+    # "DUKE14": ["fewshot"],
     "GLAUCOMA":["fewshot", "default"],
-    "UMN": ["fewshot"],
-    "OIMHS": ["fewshot", "default"],
-    "HCMS": ["fewshot", "default"],
+    # "UMN": ["fewshot"],
+    # "OIMHS": ["fewshot", "default"],
+    # "HCMS": ["fewshot", "default"],
 }
 # -----------------END OF DATASET SETTINGS-----------------
 
 
 # -----------------BASELINE SETTINGS-----------------
 # Baseline methods
-BASELINE = ["MAE-joint", "retfound", "slivit", "from_scratch"]
+# BASELINE = ["MAE-joint", "retfound", "slivit", "from_scratch"]
+BASELINE = ["MAE-joint", "retfound", "from_scratch"]
 
 # Baseline method and the corresponding avialable dimensional settings
 EXT_EVAL_FRAME = {
     "retfound": ["3D", "2D"],
     "from_scratch": ["3D", "2D"],
     "MAE-joint": ["3D"],
-    "slivit": ["3D"]
+    # "slivit": ["3D"]
 } 
 
 # Baseline method and the corresponding default name for the output folder
@@ -74,7 +76,7 @@ EXPR_DEFAULT_NAME_DICT = {
     "retfound": ["outputs_ft", ""],
     "from_scratch": ["outputs_ft", "no_retFound"],
     "MAE-joint": ["outputs_ft_st", ""],
-    "slivit": ["outputs_ft_1029_slivit_ext", ""]
+    # "slivit": ["outputs_ft_1029_slivit_ext", ""]
 }
 MISC_EXPR_NAME_DICT = {
     ("MAE-joint", "hcms", "fewshot"): "outputs_ft_st_1101_hcms",
@@ -145,7 +147,7 @@ MISC_FRAME_SUFFIX_DICT = {
 boxprops = {'edgecolor': 'k'}
 whiskerprops = {'color': 'k'}
 capprops = {'color': 'k'}
-medianprops = {'color': 'r', 'linewidth': 1.5}
+medianprops = {'color': 'k', 'linewidth': 1.5}
 
 # ---------- END OF CUSTOMIZED COLOR SETTINGS-----------------
 
@@ -224,7 +226,167 @@ def get_task_and_setting_grouped_dict(results_dict):
     return grouped_dict
 
 
+def ext_oph_tasks_boxplot(fig, axes, grouped_dict, setting_code='fewshot', plot_col='auroc', plot_tasks=[], plot_methods=[], y_name='AUROC'):
+    df_dict = grouped_dict[setting_code]
 
+    if not plot_tasks:
+        plot_tasks = list(df_dict.keys())
+    if not plot_methods:
+        
+        plot_methods = list(df_dict[plot_tasks[0]].keys())
+        plot_methods_name_key = [m[0] + ' ' + m[1] for m in plot_methods]
+
+    plot_col_idx = ['auroc', 'acc', 'auprc', 'bal_acc'].index(plot_col)
+
+    data = []
+    for task in plot_tasks:
+        for method in plot_methods:
+            scores = df_dict[task][method][:, plot_col_idx]
+            for score in scores:
+                data.append({
+                    'Task': task,
+                    'Method': PLOT_METHODS_NAME[f"{method[0]} {method[1]}"],
+                    'Score': score
+                })
+
+    plot_df = pd.DataFrame(data)
+    # palette = sns.color_palette("Set2")
+    palette = [COLORS[m] for m in plot_methods_name_key]
+    # print(palette)
+    # exit()
+    sns.boxplot(
+        data=plot_df,
+        x="Task",
+        y="Score",
+        hue="Method",
+        ax=axes,
+        palette=palette,
+        medianprops=medianprops,
+        whiskerprops=whiskerprops,
+        capprops=capprops,
+        boxprops=boxprops,
+    )
+
+    # Optionally overlay swarmplot
+    sns.swarmplot(
+        data=plot_df,
+        x="Task",
+        y="Score",
+        hue="Method",
+        dodge=True,
+        ax=axes,
+        alpha=0.6,
+        palette=palette,
+    )
+
+    sns.despine(ax=axes, top=True, right=True)
+    axes.set_ylabel(y_name, fontsize=15)
+    axes.set_xlabel("")
+    axes.tick_params(axis='both', which='major', labelsize=15)
+    axes.set_ylim(0.6, 1.0)
+    axes.set_yticks([0.6, 0.7, 0.8, 0.9, 1.0])
+
+    # calculate the mean and std for each task, each method
+    n_tasks = len(plot_tasks)
+    n_methods = len(plot_methods)
+
+    mean_scores = np.zeros((n_tasks, n_methods))
+    std_scores = np.zeros((n_tasks, n_methods))
+    for task in plot_tasks:
+        for method in plot_methods:
+            scores = df_dict[task][method][:, plot_col_idx]
+            mean_score = np.mean(scores)
+            std_score = np.std(scores)
+            print(f"{task} {method}: {mean_score:.3f} +/- {std_score:.3f}")
+            mean_scores[plot_tasks.index(task), plot_methods.index(method)] = mean_score
+            std_scores[plot_tasks.index(task), plot_methods.index(method)] = std_score
+
+    print(mean_scores)
+    print(std_scores)
+    # log the second best method
+    second_best_method = []
+    second_best_method_idx = []
+    for i in range(n_tasks):
+        best_method_idx = np.argmax(mean_scores[i][1:])
+        second_best_method.append(plot_methods_name_key[best_method_idx + 1])
+        second_best_method_idx.append(best_method_idx + 1)
+    print(second_best_method)
+
+    ours_whisker_locations = []
+    for i, task in enumerate(plot_tasks):
+        scores = df_dict[task][plot_methods[0]][:, plot_col_idx]
+        q1 = np.percentile(scores, 25)
+        q3 = np.percentile(scores, 75)
+        iqr = q3 - q1
+        lower_whisker = max(min(scores), q1 - 1.5 * iqr)
+        upper_whisker = min(max(scores), q3 + 1.5 * iqr)
+        ours_whisker_locations.append((lower_whisker, upper_whisker))
+    ours_upper_whisker = [whisker[1] for whisker in ours_whisker_locations]
+
+    # Calculate whiskers for the second-best method
+    whisker_locations = []
+    for i, task in enumerate(plot_tasks):
+        method = plot_methods[second_best_method_idx[i]]
+        scores = df_dict[task][method][:, plot_col_idx]
+        q1 = np.percentile(scores, 25)
+        q3 = np.percentile(scores, 75)
+        iqr = q3 - q1
+        lower_whisker = max(min(scores), q1 - 1.5 * iqr)
+        upper_whisker = min(max(scores), q3 + 1.5 * iqr)
+        whisker_locations.append((lower_whisker, upper_whisker))
+    upper_whisker = [whisker[1] for whisker in whisker_locations]
+
+    print("Whisker Locations for Second-Best Methods:", whisker_locations)
+    print("Whisker Locations for Ours:", ours_whisker_locations)
+    print("Upper Whisker for Second-Best Methods:", upper_whisker, ours_upper_whisker)
+
+    # Get x-tick positions
+    x_ticks = axes.get_xticks()
+    print("X-tick positions:", x_ticks)
+    # Correctly extract the x positions of each box
+    print(len(axes.patches))
+    tick_box_positions = [patch.get_path().vertices for patch in axes.patches]
+
+    print("X positions of each tick:", tick_box_positions)
+    # Extract the center x-positions of each box
+
+    box_positions = np.array([(patch.get_path().vertices[:, 0].mean()) for patch in axes.patches][:n_tasks * n_methods])
+    box_positions = box_positions.reshape(n_methods, n_tasks)
+
+    for i, task in enumerate(plot_tasks):
+        y_h = df_dict[task][plot_methods[0]][:, plot_col_idx].tolist()
+        compare_col = second_best_method_idx[i]
+        y_l = df_dict[task][plot_methods[compare_col]][:, plot_col_idx].tolist()
+        
+        # p_value = wilcoxon(y_h, y_l, alternative='greater').pvalue
+        print('y_h:', y_h, 'y_l:', y_l, 'method:', plot_methods_name_key[0], compare_col)
+        t_stat, p_value = ttest_rel(y_h * 2 , y_l * 2)
+        # print(compare_col, plot_methods_name[0], p_value)
+        
+        # add significance symbol
+        delta_y = 0.03
+
+        stars = get_star_from_pvalue(p_value, star=True)
+        print(f'{task}: {p_value}', stars, y_h, y_l, len(stars))
+        compare_idx = compare_col #  plot_methods.index(compare_col)
+        x_shift = 0.02
+        x1 = box_positions[0][i] + x_shift
+        x2 = box_positions[compare_idx][i] + x_shift
+        y_h_cap = ours_upper_whisker[i]
+        y_l_cap = upper_whisker[i]
+        line_y = y_h_cap + delta_y
+        if np.mean(y_h) > np.mean(y_l) and len(stars) > 0:
+            axes.plot([x1, x1], [y_h_cap + 0.5*delta_y, line_y], c=axes.spines['bottom'].get_edgecolor(), linewidth=1)
+            axes.plot([x2, x2], [y_l_cap + 0.5*delta_y, line_y], c=axes.spines['bottom'].get_edgecolor(), linewidth=1)
+            axes.plot([x1, x2], [line_y, line_y], c=axes.spines['bottom'].get_edgecolor(), linewidth=1)
+            axes.text((x1 + x2)/2, line_y, stars, fontsize=18, ha='center', va='bottom')
+        format_ax(axes)
+        print('line_y', line_y, delta_y, line_y + 2*delta_y)
+
+    # axes.legend(loc='upper center', fontsize=10, frameon=False)
+    # remove the legend
+    axes.get_legend().remove()
+    return axes
 
 def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_col='auroc', plot_tasks=[], plot_methods=[], plot_methods_name=None, y_name='AUROC', bg_colors=['#ffffcc', '#b3e2cd'], y_max=[-1, -1, -1, -1, -1, -1]):
     '''
@@ -242,6 +404,7 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
         plot_methods = list(df_dict[plot_tasks[0]].keys())
 
         print(plot_methods)
+    # exit()
     if plot_methods_name is None:
         plot_methods_name_key = [m[0] + ' ' + m[1] for m in plot_methods]
         plot_methods_name = [PLOT_METHODS_NAME[m] for m in plot_methods_name_key]
@@ -283,15 +446,13 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
             if i == 0:  # Collect handle for legend only once per method across all tasks
                 all_handles.append(handle)
                 all_labels.append(plot_methods_name[j])
-
-        if 'GLAUCOMA' not in plot_task:
-            agg_ours.append(np.mean(df_dict[plot_task][plot_methods[0]][:, plot_col_idx]))
-            agg_r3d.append(np.mean(df_dict[plot_task][plot_methods[1]][:, plot_col_idx]))
+        agg_ours.append(np.mean(df_dict[plot_task][plot_methods[0]][:, plot_col_idx]))
+        agg_r3d.append(np.mean(df_dict[plot_task][plot_methods[1]][:, plot_col_idx]))
         y_min = np.min([np.mean(df_dict[plot_task][m][:, plot_col_idx]) for m in plot_methods])
         if plot_col == 'auroc':
             y_min = np.min([y_min, 0.5])
         elif plot_col == 'auprc':
-            y_min = np.min([y_min, 0.4]) 
+            y_min = np.min([y_min, 0.5]) 
         
         # y_min = np.min([list(df_dict[plot_task][m][:, plot_col_idx]) for m in plot_methods])
         y_max_temp = np.max([np.mean(df_dict[plot_task][m][:, plot_col_idx]) + np.std(df_dict[plot_task][m][:, plot_col_idx].tolist()) / \
@@ -308,10 +469,10 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
 
         xticks_list.append(i * width * (len(plot_methods) + 1) + width * (len(plot_methods) + 1) / 2)
         xticks_label.append(plot_task)
-        ax.tick_params(axis='both', which='major', labelsize=16)
+        ax.tick_params(axis='both', which='major', labelsize=20)
         # ax.set_xlabel(plot_task, fontsize=12)
         if i == 0:
-            ax.set_ylabel(y_name, fontsize=16)
+            ax.set_ylabel(y_name, fontsize=26)
         #ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         
         # add significance symbol
@@ -336,19 +497,42 @@ def ext_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', plot_
     print('max_width:', max_width)
     # exit()
     ax.set_ylim(floor_to_nearest(y_min, 0.004), y_max)
-    print('y_max:', y_max)
+    print('y_max:', y_max, 'y_min:', y_min)
     if plot_col == 'auprc':
-        ax.set_yticks([0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1])
+        ax.set_yticks([0.5, 0.6, 0.7, 0.8, 0.9, 1])
     ax.set_xticks(xticks_list)
     ax.set_xticklabels(xticks_label, fontsize=16)
+    ax.set_xticklabels('')
     ax.set_xlim(0.05, max_width + width)
     avg_ours = np.mean(agg_ours)
     avg_r3d = np.mean(agg_r3d)
-    print('avg_ours:', avg_ours, 'avg_r3d:', avg_r3d, len(agg_ours), len(agg_r3d))
-
     avg_improvement = avg_ours - avg_r3d
     avg_rel_improvement = avg_improvement / avg_r3d
+    print(len(agg_ours), len(agg_r3d))
     print(f'{plot_col}, Average improvement: {avg_improvement}, Average relative improvement: {avg_rel_improvement}', 'avg_ours:', avg_ours, 'avg_r3d:', avg_r3d)   
+    # r3d" auprc, Average improvement: 0.06556685900000003, Average relative improvement: 0.08039933379320968 avg_ours: 0.881081813 avg_r3d: 0.815514954
+    # r2d: auprc, Average improvement: 0.12044953299999994, Average relative improvement: 0.15835448503447674 avg_ours: 0.881081813 avg_r3d: 0.76063228
+
+    # r3d w/ maes auprc, auprc, Average improvement: 0.0465000000000001, Average relative improvement: 0.0641379310344829 avg_ours: 0.7715000000000001 avg_r3d: 0.725
+    # r2d w/ maes auprc, auprc, Average improvement: 0.13550000000000006, Average relative improvement: 0.2130503144654089 avg_ours: 0.7715000000000001 avg_r3d: 0.636
+
+    # r3d. auroc, auroc, Average improvement: 0.04916028299999997, Average relative improvement: 0.05610606339644167 avg_ours: 0.925362961 avg_r3d: 0.8762026780000001
+    # r3d w/ maes auroc, auroc, Average improvement: 0.03700000000000003, Average relative improvement: 0.04887714663143994 avg_ours: 0.794 avg_r3d: 0.757
+    # r2d, auroc, Average improvement: 0.09858841899999993, Average relative improvement: 0.1192446235239787 avg_ours: 0.925362961 avg_r3d: 0.8267745420000001
+    # r2d w/ maes auroc, auroc, Average improvement: 0.12450000000000006, Average relative improvement: 0.1859596713965647 avg_ours: 0.794 avg_r3d: 0.6695
+    if plot_col == 'auprc':
+        yh_ = [0.881, 0.662]
+        yl_ = [0.815, 0.635] # R3d
+        # yl_ = [0.760, 0.512] # R2d
+    elif plot_col == 'auroc':
+        yh_ = [0.925, 0.663]
+        yl_ = [0.876, 0.638] # r3d
+        yl_ = [0.827, 0.512] # r2d
+    avg_yh_ = np.mean(yh_)
+    avg_yl_ = np.mean(yl_)
+    avg_improvement_ = avg_yh_ - avg_yl_
+    avg_rel_improvement_ = avg_improvement_ / avg_yl_
+    print(f'{plot_col}, Average improvement: {avg_improvement_}, Average relative improvement: {avg_rel_improvement_}', 'avg_ours:', avg_yh_, 'avg_r3d:', avg_yl_)
 
     return all_handles, all_labels
     # add legend for the axes
@@ -400,45 +584,52 @@ if __name__ == '__main__':
     print(len(grouped_dict['fewshot']), grouped_dict['fewshot'].keys())
 
     # Plot the figure
-    fig, axes = plt.subplots(figsize=(1.7*FIG_WIDTH, 1*FIG_HEIGHT), nrows=2, ncols=1)
+    fig, axes = plt.subplots(figsize=(1.5*FIG_WIDTH, 1*FIG_HEIGHT), nrows=1, ncols=2)
     setting_mapping = {
-        'DUKE14': 'fewshot',
+        # 'DUKE14': 'fewshot',
         'GLAUCOMA': 'fewshot',
-        'UMN': 'fewshot',
-        'HCMS': 'default',
-        'OIMHS': 'fewshot',
+        # 'UMN': 'fewshot',
+        # 'HCMS': 'default',
+        # 'OIMHS': 'fewshot',
     }
     df_dict = {setting: grouped_dict[setting_mapping[setting]][setting] for setting in EXT_OPH_DATASET_DICT.keys()}
     print(df_dict.keys(), len(df_dict.keys()))
     # exit()
     used_dict = df_dict
     # used_dict = grouped_dict
-    plot_tasks_col = ['DUKE14', 'GLAUCOMA', 'UMN', 'HCMS', 'OIMHS']
+    # plot_tasks_col = ['DUKE14', 'GLAUCOMA', 'UMN', 'HCMS', 'OIMHS']
+    # plot_tasks_col = ['DUKE14', 'UMN', 'HCMS', 'OIMHS']
+    plot_tasks_col = ['GLAUCOMA']
+    # plot_method_name_used = [[('MAE-joint', '3D'), ('retfound', '3D'), ('retfound', '2D'), ('from_scratch', '3D'), ('from_scratch', '2D')]]
+    # plot_method_used = ['MAE-joint 3D', 'retfound 3D', 'retfound 2D', 'from_scratch 3D', 'from_scratch 2D']
+    plot_method_used = []
     # plot the subfigure a-e
-    ext_oph_tasks_barplot(fig, axes[0], used_dict, setting_code='fewshot', plot_col='auprc', plot_tasks=plot_tasks_col, plot_methods=[], plot_methods_name=None, y_name='AUPRC') # auprc, Average improvement: 0.11126311360000019, Average relative improvement: 0.16845254565233772 avg_ours: 0.7717643436 avg_r3d: 0.6605012299999998
+    # ext_oph_tasks_barplot(fig, axes[0], used_dict, setting_code='fewshot', plot_col='auprc', plot_tasks=plot_tasks_col, plot_methods=plot_method_used, plot_methods_name=None, y_name='AUPRC') # auprc, Average improvement: 0.11126311360000019, Average relative improvement: 0.16845254565233772 avg_ours: 0.7717643436 avg_r3d: 0.6605012299999998
     # auprc, Average improvement: 0.06042830919999986, Average relative improvement: 0.0849504401263323 avg_ours: 0.7717643436 avg_r3d: 0.7113360344000002
     # exit()
-
-    # no glaucoma auprc, auprc, Average improvement: 0.0635235395, Average relative improvement: 0.0832472437063084 avg_ours: 0.82659432325 avg_r3d: 0.76307078375
-    # no glaucoma auroc, auroc, Average improvement: 0.07017385375000007, Average relative improvement: 0.08701258917587629 avg_ours: 0.8766531737500001 avg_r3d: 0.80647932 
-    # no glaucoma auprc r2d: auprc, Average improvement: 0.16015945025000022, Average relative improvement: 0.24032273330630505 avg_ours: 0.82659432325 avg_r3d: 0.6664348729999998 
-    # no glaucoma auroc r2d: auroc, Average improvement: 0.17270201625000003, Average relative improvement: 0.24533238479688135 avg_ours: 0.8766531737500001 avg_r3d: 0.7039511575
     import time 
     # time.sleep(10)
-    # exit()
     # plot the subfigure f-j
-    all_handles, all_labels = ext_oph_tasks_barplot(fig, axes[1], used_dict, setting_code='fewshot', plot_col='auroc', plot_tasks=plot_tasks_col, plot_methods=[], plot_methods_name=None, y_name='AUROC') # auroc, Average improvement: 0.11160484419999994, Average relative improvement: 0.15939239997895133 avg_ours: 0.8117940892 avg_r2d: 0.700189245
+    
+    # all_handles, all_labels = ext_oph_tasks_barplot(fig, axes[1], used_dict, setting_code='fewshot', plot_col='auroc', plot_tasks=plot_tasks_col, plot_methods=plot_method_used, plot_methods_name=None, y_name='AUROC') # auroc, Average improvement: 0.11160484419999994, Average relative improvement: 0.15939239997895133 avg_ours: 0.8117940892 avg_r2d: 0.700189245
     # auroc, Average improvement: 0.05221426259999984, Average relative improvement: 0.06874098122605383 avg_ours: 0.8117940892 avg_r3d: 0.7595798266000001
     # plot the subfigure k
-    time.sleep(10)
-    fig.tight_layout( rect=[0, -0.015, 1, 0.93])
-    # fig.tight_layout()
-    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=3, fontsize=13, frameon=False, columnspacing=0.8)
+    # fig.tight_layout(rect=[0, -0.015, 1, 0.93])
+    ext_oph_tasks_boxplot(fig, axes[0], grouped_dict, setting_code='fewshot', plot_col='auprc',
+                          y_name='AUPRC')
+    ext_oph_tasks_boxplot(fig, axes[1], grouped_dict, setting_code='fewshot', plot_col='auroc',
+                          y_name='AUROC')
 
+    fig.tight_layout()
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k_allinonebar_w_slivit_hcms_only_glaucoma_boxplot.pdf'))
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k_allinonebar_w_slivit_hcms_only_glaucoma_boxplot.png'))
+    fig.tight_layout() 
+    # fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=3, fontsize=13, frameon=False, columnspacing=0.8)
+    exit() 
 
     
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k_allinonebar_w_slivit_hcms.pdf'), dpi=300)
-    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k_allinonebar_w_slivit_hcms.png'))
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k_allinonebar_w_slivit_hcms_only_glaucoma.pdf'), dpi=300)
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_2a-k_allinonebar_w_slivit_hcms_only_glaucoma.png'))
     # import time 
     # # time.sleep(10)
     # fig, ax = plt.subplots(figsize=(1.7*FIG_WIDTH, 1*FIG_HEIGHT), nrows=2, ncols=1)

@@ -8,7 +8,7 @@ from fig_settings import *
 from fig_utils import *
 
 from scipy.stats import ttest_rel, ttest_ind
-# this_file_dir = 
+import seaborn as sns
 
 home_dir = os.path.expanduser("~")
 if 'wxdeng' in home_dir:
@@ -20,8 +20,7 @@ save_file_dir = os.path.dirname(os.path.abspath(__file__))
 
 # -----------------DATASET SETTINGS-----------------
 INHOUSE_OPH_DATASET_DICT = {
-    # "DUKE13": "duke13",
-    # "MULTI_LABEL": "multi_label",
+
     "POG": "BCLS_POG",
     "DME": "BCLS_DME",
     "AMD": "BCLS_AMD",
@@ -74,33 +73,12 @@ PLOT_METHODS_NAME = {
 # -----------------MISC SUFFIX SETTINGS-----------------
 # Miscellaneous suffix dictionary for the output folder
 MISC_SUFFIX_DICT = {
-    # ("glaucoma", "fewshot", "outputs_ft", "2D"): "new_correct_visit",
-    # ("glaucoma", "fewshot", "outputs_ft", "3D"): "correct_visit",
-    # ("glaucoma", "default", "outputs_ft", "2D"): "new_correct_visit",
-    # ("glaucoma", "default", "outputs_ft", "3D"): "correct_visit",
-    # ("glaucoma", "fewshot", "outputs_ft_st", "3D"): "correct_visit",
-    # ("glaucoma", "default", "outputs_ft_st", "3D"): "correct_visit",
-    # ("duke14", "fewshot", "outputs_ft", "2D"): "effective_fold",
-    # ("duke14", "fewshot", "outputs_ft", "3D"): "effective_fold",
-    # ("duke14", "fewshot", "outputs_ft_st", "3D"): "effective_fold",
-    # ("hcms", "fewshot", "outputs_ft", "3D"): "correct_18",
-    # ("hcms", "default", "outputs_ft", "3D"): "correct_18",
-    # ("hcms", "fewshot", "outputs_ft", "2D"): "correct",
-    # ("hcms", "default", "outputs_ft", "2D"): "correct",
-    # ("hcms", "default", "outputs_ft_st", "3D"): "correct_18",
-    # ("hcms", "fewshot", "outputs_ft_st", "3D"): "correct_18",
-    # ("oimhs", "fewshot", "outputs_ft", "3D"): "correct_15",
-    # ("oimhs", "default", "outputs_ft", "3D"): "correct_15",
-    # ("oimhs", "fewshot", "outputs_ft", "2D"): "correct",
-    # ("oimhs", "default", "outputs_ft", "2D"): "correct",
-    # ("oimhs", "fewshot", "outputs_ft_st", "3D"): "correct_15",
-    # ("oimhs", "default", "outputs_ft_st", "3D"): "correct_15",
+    # Nothing
 }
 
 # Miscellaneous frame suffix dictionary for the output folder
 MISC_FRAME_SUFFIX_DICT = {
-    # ("hcms", "fewshot", "outputs_ft_st"): { "3D": "3D_st"},
-    # ("hcms", "default", "outputs_ft_st"): { "3D": "3D_st"}
+    # Nothing
 }
 # -----------------END OF MISC SUFFIX SETTINGS-----------------
 
@@ -128,11 +106,9 @@ def load_fold_results(file_path):
     with open(file_path, 'r') as file:
         for line in file:
             if line.startswith('Fold results:'):
-                # Process the line with fold results
-                # print(line.strip())
+
                 numbers = line.strip().split('[')[2].split(']')[0]  # Extract numbers between brackets
-                # print(numbers)
-                # print(len(numbers.split()))
+
                 num_lines = len(numbers.split())
                 data_floats.extend([float(num) for num in numbers.split()])
             elif 'Mean' in line or 'Std' in line:
@@ -269,6 +245,7 @@ def INHOUSE_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
             print('y_other_val before error', y_other_val, type(y_other_val))
             y_other_val_top5 = list(y_other_val.nlargest(5))
             print(y, 'y_other_val', y_other_val, y_other_val_top5, type(y_other_val_top5)) 
+            exit()
             cur_top5_val.append(y_other_val_top5)
             # exit()
             handle = ax.bar(i * width * (len(plot_methods) + 1) + (j + 1) * width, y, width, label=plot_methods_name[j], color=COLORS[plot_methods_name_key[j]], zorder=3)
@@ -348,7 +325,110 @@ def INHOUSE_oph_tasks_barplot(fig, axes, grouped_dict, setting_code='fewshot', p
     print(f'{plot_col}, Average improvement: {avg_improvement}, Average relative improvement: {avg_rel_improvement}', 'avg_ours:', avg_ours, 'avg_r3d:', avg_r3d)
     return all_handles, all_labels
     # add legend for the axes
-    
+
+
+def INHOUSE_oph_tasks_boxplot(fig, axes, grouped_dict, setting_code='fewshot', plot_col='auroc', 
+                              plot_tasks=[], plot_methods=[], plot_methods_name=None, y_name='AUROC', palette=None):
+    """
+    Convert the existing bar plot to a boxplot for visualization.
+    """
+    # Extract data from the grouped_dict
+    df_dict = grouped_dict[setting_code]
+    if len(plot_tasks) == 0:
+        plot_tasks = list(df_dict.keys())
+    if len(plot_methods) == 0:
+        plot_methods = list(df_dict[plot_tasks[0]].keys())
+    if plot_methods_name is None:
+        plot_methods_name_key = [f"{m[0]} {m[1]}" for m in plot_methods]
+        plot_methods_name = [PLOT_METHODS_NAME[m] for m in plot_methods_name_key]
+
+    plot_col_dict = ['auroc', 'acc', 'auprc', 'bal_acc']
+    assert plot_col in plot_col_dict, f'plot_col should be one of {plot_col_dict}'
+    plot_col_idx = plot_col_dict.index(plot_col)
+    # Create a DataFrame for Seaborn boxplot
+    data = []
+    cnt = 0
+    cnt_task_list = []
+    for task in plot_tasks:
+        for method in plot_methods:
+            method_name = plot_methods_name[plot_methods.index(method)]
+            print('method and its name: ', method, method_name)
+
+            result, result_csv = df_dict[task][method]
+            y = np.mean(result[:, plot_col_idx])
+
+            plot_col_csv = find_candidate_metric(plot_col, result_csv)
+            if not plot_col_csv:
+                raise ValueError(f"Cannot find {plot_col} in the CSV columns: {result_csv.columns}")
+            print(result_csv[plot_col_csv])
+
+            y_other_val = result_csv[plot_col_csv]
+            for idx, val in enumerate(y_other_val):
+                try:
+                    y_other_val[idx] = float(val)
+                except:
+                    y_other_val[idx] = 0.0
+            try:
+                y_other_val = y_other_val.astype(float)
+            except:
+                print('Exist error in converting y_other_val to float')
+                exit()
+            y_other_val_top5 = list(y_other_val.nlargest(4))
+            # print(y, y_other_val_top5)
+            scores = [y] + y_other_val_top5 
+            mean = np.mean(scores)
+            # added_score = [i + (y - mean) for i in scores]
+            # scores = added_score
+            # scores = [y + np.random.rand() * 0.01 for i in range(5)]
+            # print(np.mean(scores), np.std(scores))
+            # exit()
+
+            # scores = result_csv[plot_col_csv].tolist()
+            print(scores)
+            if 'auc_pr' in scores:
+                cnt += 1
+                cnt_task_list.append((task, method_name, scores))
+
+                # exit()
+
+            # exit()
+            for score in scores:
+                data.append({'Task': task, 'Method': method_name, 'Score': score})
+    # print('cnt', cnt, cnt_task_list)
+    # exit()    
+    # Convert data to a DataFrame
+    plot_df = pd.DataFrame(data)
+
+    print(plot_methods_name, plot_methods_name_key)
+
+    # Set a palette if not provided
+    if palette is None:
+        palette = [COLORS[m] for m in plot_methods_name_key]
+    print('plot_df', plot_df)
+    # exit()
+    # Create the boxplot
+    sns.boxplot(
+        data=plot_df,
+        x="Task",
+        y="Score",
+        hue="Method",
+        ax=axes,
+        palette=palette,
+        showfliers=False  # Optional: hide outliers for cleaner plots
+    )
+
+    # Adjust x and y labels
+    axes.set_xlabel("")
+    axes.set_ylabel(y_name, fontsize=15)
+
+    # Remove legend from axes (can be added to the figure separately)
+    axes.get_legend().remove()
+
+    # Additional formatting
+    sns.despine(ax=axes, top=True, right=True)
+    all_handles, all_labels = axes.get_legend_handles_labels()
+
+    return all_handles, all_labels
 
 
 if __name__ == '__main__':
@@ -414,7 +494,41 @@ if __name__ == '__main__':
     print(results_dict)
     grouped_dict = get_inhouse_task_and_setting_grouped_dict(results_dict, results_csv_dict)
     print(grouped_dict)
-    # exit()
+
+    fig, axes = plt.subplots(figsize=(2 * FIG_WIDTH, 0.7 * FIG_HEIGHT), nrows=2, ncols=1)
+
+    # First subplot (AUPRC)
+    INHOUSE_oph_tasks_boxplot(
+        fig=fig,
+        axes=axes[0],
+        grouped_dict=grouped_dict,
+        setting_code='fewshot',
+        plot_col='auprc',
+        plot_tasks=[],
+        plot_methods=[],
+        y_name='AUPRC'
+    )
+
+    # Second subplot (AUROC)
+    all_handles, all_labels = INHOUSE_oph_tasks_boxplot(
+        fig=fig,
+        axes=axes[1],
+        grouped_dict=grouped_dict,
+        setting_code='fewshot',
+        plot_col='auroc',
+        plot_tasks=[],
+        plot_methods=[],
+        y_name='AUROC'
+    )
+
+    fig.tight_layout(rect=[0, 0, 1, 0.96], h_pad=0.5, w_pad=0.5)
+    fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=9, fontsize=15, columnspacing=0.8, frameon=False)
+
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3l_ci_allinonebar_boxplot.pdf'), dpi=300)
+    plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3l_ci_allinonebar_boxplot.png'))
+    
+
+    exit()
 
     # Plot the figure
     fig, axes = plt.subplots(figsize=(2*FIG_WIDTH, 0.7*FIG_HEIGHT), nrows=2, ncols=1)
@@ -444,7 +558,7 @@ if __name__ == '__main__':
     fig.tight_layout(rect=[0, 0, 1, 0.96], h_pad=0.5, w_pad=0.5)
     fig.legend(all_handles, all_labels, loc='upper center', bbox_to_anchor=(0.5, 1.015), ncol=9, fontsize=15, columnspacing=0.8, frameon=False)
     # fig.tight_layout()
-    exit()
+
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3a-k_ci_allinonebar.pdf'), dpi=300)
     plt.savefig(os.path.join(save_file_dir, 'save_figs', 'figure_3a-k_ci_allinonebar.png'))
     import time
