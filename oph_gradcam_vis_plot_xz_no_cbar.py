@@ -139,7 +139,7 @@ for i in range(num_frames):
     if y2 > 767:
         y2 = 767
         x2 = x1 + (767 - y1) / k
-    axs[0, i].plot([y1, y2], [x1, x2], 'r-', linewidth=7, alpha=0.5)
+    axs[0, i].plot([y1, y2], [x1, x2], 'g-', linewidth=7, alpha=0.5)
     # line_start = octh[0]
     # x1, y1, x2, y2 = line_start
     # axs[3,i].plot([y1, y2], [x1, x2], 'r-', linewidth=2)
